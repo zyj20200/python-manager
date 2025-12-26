@@ -330,7 +330,7 @@ function vf_display_logs(af_logs) {
     }
     
     vf_viewer.innerHTML = af_logs.map(vf_log => {
-        return '<div class="log-entry">' + vf_escape_html(vf_log) + '</div>';
+        return '<div class="log-entry">' + vf_ansi_to_html(vf_log) + '</div>';
     }).join('');
     
     // Scroll to bottom
@@ -412,6 +412,50 @@ function vf_escape_html(vf_text) {
     var vf_div = document.createElement('div');
     vf_div.textContent = vf_text;
     return vf_div.innerHTML;
+}
+
+function vf_ansi_to_html(vf_text) {
+    // First escape HTML to prevent XSS
+    vf_text = vf_escape_html(vf_text);
+    
+    // ANSI color codes mapping
+    var vf_colors = {
+        // Text colors
+        30: 'black', 31: '#d00', 32: '#00a000', 33: '#a05000', 34: '#0000d0', 35: '#a000a0', 36: '#00a0a0', 37: 'gray',
+        90: 'gray', 91: '#ff5050', 92: '#50ff50', 93: '#ffff50', 94: '#5050ff', 95: '#ff50ff', 96: '#50ffff', 97: 'white',
+        // Background colors
+        40: 'black', 41: '#d00', 42: '#00a000', 43: '#a05000', 44: '#0000d0', 45: '#a000a0', 46: '#00a0a0', 47: 'gray',
+        100: 'gray', 101: '#ff5050', 102: '#50ff50', 103: '#ffff50', 104: '#5050ff', 105: '#ff50ff', 106: '#50ffff', 107: 'white'
+    };
+
+    var vf_open_tags = 0;
+    
+    // Replace ANSI escape sequences
+    return vf_text.replace(/\x1B\[([0-9;]*)m/g, function(vf_match, vf_p1) {
+        var vf_codes = vf_p1.split(';').map(function(c) { return parseInt(c) || 0; });
+        var vf_result = '';
+        
+        for (var i = 0; i < vf_codes.length; i++) {
+            var vf_code = vf_codes[i];
+            if (vf_code === 0) {
+                // Reset
+                while (vf_open_tags > 0) {
+                    vf_result += '</span>';
+                    vf_open_tags--;
+                }
+            } else if (vf_colors[vf_code]) {
+                // Color
+                var vf_type = (vf_code >= 30 && vf_code <= 37) || (vf_code >= 90 && vf_code <= 97) ? 'color' : 'background-color';
+                vf_result += '<span style="' + vf_type + ': ' + vf_colors[vf_code] + '">';
+                vf_open_tags++;
+            } else if (vf_code === 1) {
+                // Bold
+                vf_result += '<span style="font-weight: bold">';
+                vf_open_tags++;
+            }
+        }
+        return vf_result;
+    }) + '</span>'.repeat(vf_open_tags);
 }
 
 function vf_set_button_loading(vf_script_id, vf_loading) {

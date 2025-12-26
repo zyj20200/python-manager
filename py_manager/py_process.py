@@ -23,11 +23,11 @@ def vf_strip_ansi(text):
     return ansi_escape.sub('', text)
 
 def vf_log_worker(pipe, log_file):
-    """Read from pipe, strip ANSI codes, and write to log file"""
+    """Read from pipe and write to log file"""
     try:
         for line in pipe:
-            clean_line = vf_strip_ansi(line)
-            log_file.write(clean_line)
+            # clean_line = vf_strip_ansi(line)
+            log_file.write(line)
             log_file.flush()
     except ValueError:
         pass  # File likely closed
@@ -101,11 +101,19 @@ def vf_start_script(vf_script_id):
         # Use script's directory as working directory for absolute paths
         vf_working_dir = os.path.dirname(vf_script_path) if os.path.isabs(vf_script_config['path']) else vg_base_path
         
+        # Prepare environment variables to force color output
+        vf_env = os.environ.copy()
+        vf_env['PYTHONUNBUFFERED'] = '1'
+        vf_env['FORCE_COLOR'] = '1'
+        vf_env['LOGURU_COLORIZE'] = 'true'
+        vf_env['TERM'] = 'xterm-256color'
+
         vf_process = subprocess.Popen(
             vf_cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             cwd=vf_working_dir,  # Set working directory based on path type
+            env=vf_env,
             text=True,
             encoding='utf-8',
             errors='replace',
