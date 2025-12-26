@@ -28,7 +28,7 @@ def vf_save_config(vf_config):
         print(f"Error saving config: {e}")
         return False
 
-def vf_add_script(vf_script_path, vf_name=None, vf_args=None, vf_auto_restart=True):
+def vf_add_script(vf_script_path, vf_name=None, vf_args=None, vf_auto_restart=True, vf_interpreter=None):
     """Add a new script to the configuration"""
     # Load current config
     vf_config = vf_load_config()
@@ -61,6 +61,9 @@ def vf_add_script(vf_script_path, vf_name=None, vf_args=None, vf_auto_restart=Tr
         "max_memory_mb": 512,
         "log_file": f"{vf_script_id}.log"
     }
+    
+    if vf_interpreter:
+        vf_new_script["interpreter"] = vf_interpreter
     
     # Add to config
     vf_config['scripts'].append(vf_new_script)

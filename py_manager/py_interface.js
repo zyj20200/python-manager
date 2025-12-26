@@ -796,6 +796,7 @@ function vf_add_script() {
     var vf_path = document.getElementById('new-script-path').value.trim();
     var vf_name = document.getElementById('new-script-name').value.trim();
     var vf_args = document.getElementById('new-script-args').value.trim();
+    var vf_interpreter = document.getElementById('new-script-interpreter').value.trim();
     var vf_auto_restart = document.getElementById('new-script-auto-restart').checked;
     
     if (!vf_path) {
@@ -820,6 +821,7 @@ function vf_add_script() {
         path: vf_path,
         name: vf_name || null,
         args: vf_args ? vf_args.split(' ') : [],
+        interpreter: vf_interpreter || null,
         auto_restart: vf_auto_restart
     };
     
@@ -838,6 +840,7 @@ function vf_add_script() {
             document.getElementById('new-script-path').value = '';
             document.getElementById('new-script-name').value = '';
             document.getElementById('new-script-args').value = '';
+            document.getElementById('new-script-interpreter').value = '';
             document.getElementById('new-script-auto-restart').checked = true;
             // Refresh data
             vf_fetch_initial_data().then(function() {

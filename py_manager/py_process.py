@@ -80,7 +80,12 @@ def vf_start_script(vf_script_id):
     if not os.path.exists(vf_script_path):
         return {"success": False, "error": f"Script not found: {vf_script_path}"}
     
-    vf_cmd = [sys.executable, vf_script_path]
+    # Determine python executable
+    vf_python_executable = sys.executable
+    if vf_script_config.get('interpreter'):
+        vf_python_executable = vf_script_config['interpreter']
+    
+    vf_cmd = [vf_python_executable, vf_script_path]
     if vf_script_config.get('args'):
         vf_cmd.extend(vf_script_config['args'])
     
