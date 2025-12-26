@@ -814,6 +814,14 @@ function vf_close_script_manager() {
     document.getElementById('script-manager-modal').style.display = 'none';
 }
 
+function vf_show_add_script_modal() {
+    document.getElementById('add-script-modal').style.display = 'block';
+}
+
+function vf_close_add_script_modal() {
+    document.getElementById('add-script-modal').style.display = 'none';
+}
+
 function vf_populate_script_list() {
     var vf_list = document.getElementById('script-list');
     vf_list.innerHTML = '';
@@ -968,6 +976,7 @@ function vf_add_script() {
             vf_fetch_initial_data().then(function() {
                 // After data is refreshed, update the script list
                 vf_populate_script_list();
+                vf_close_add_script_modal();
             });
         } else {
             vf_show_notification('Failed to add script: ' + vf_data.error, 'error');

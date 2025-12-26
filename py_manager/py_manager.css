@@ -678,11 +678,14 @@ body {
 }
 
 .script-list {
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 0.5rem;
+    /* Removed fixed height to allow full page usage */
+    /* max-height: 200px; */
+    /* overflow-y: auto; */
+    /* border: 1px solid #ddd; */
+    /* padding: 0.5rem; */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .script-item {

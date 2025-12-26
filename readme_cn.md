@@ -77,16 +77,15 @@ python download_socketio.py
 ### 添加和编辑脚本
 
 1. **添加脚本**：
-   - 点击 "⚙ Manage Scripts" 按钮
+   - 点击 "➕ Add Script" 按钮
    - 输入 Python 脚本的完整路径或浏览选择
    - 配置显示名称、参数和自动重启选项
    - 点击 "Add Script"
 
-2. **编辑脚本**：
-   - 在 "Manage Scripts" 模态框中，找到要修改的脚本
-   - 点击脚本旁边的 "Edit" 按钮
-   - 更新配置，如参数、解释器路径、内存限制等
-   - 点击 "Save Changes"
+2. **管理脚本**：
+   - 点击 "⚙ Manage Scripts" 按钮查看所有已配置的脚本
+   - 点击 "Edit" 修改脚本配置（参数、解释器路径、内存限制等）
+   - 点击 "Remove" 从管理器中删除脚本
 
 3. **通过配置文件**：
    编辑 `py_manager/config.json`：

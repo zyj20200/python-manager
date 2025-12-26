@@ -77,16 +77,15 @@ Required packages (automatically installed):
 ### Adding and Editing Scripts
 
 1. **Adding Scripts**:
-   - Click the "⚙ Manage Scripts" button
+   - Click the "➕ Add Script" button
    - Enter the full path to your Python script or browse for it
    - Configure display name, arguments, and auto-restart options
    - Click "Add Script"
 
-2. **Editing Scripts**:
-   - In the "Manage Scripts" modal, find the script you want to modify
-   - Click the "Edit" button next to the script
-   - Update configurations such as arguments, interpreter path, memory limit, etc.
-   - Click "Save Changes"
+2. **Managing Scripts**:
+   - Click the "⚙ Manage Scripts" button to view all configured scripts
+   - Click "Edit" to modify script configurations (arguments, interpreter path, memory limit, etc.)
+   - Click "Remove" to delete a script from the manager
 
 3. **Via Configuration File**:
    Edit `py_manager/config.json`:

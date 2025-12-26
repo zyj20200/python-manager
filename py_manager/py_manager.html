@@ -68,6 +68,9 @@
         <button class="btn btn-info" onclick="vf_show_script_manager()" title="Manage Scripts">
             Manage Scripts
         </button>
+        <button class="btn btn-success" onclick="vf_show_add_script_modal()" title="Add New Script">
+            Add Script
+        </button>
     </div>
 </div>
 
@@ -141,6 +144,22 @@
                 <span class="modal-close" onclick="vf_close_script_manager()">&times;</span>
             </div>
             <div class="modal-body">
+                <!-- Current Scripts List -->
+                <div id="script-list" class="script-list">
+                    <!-- Script items will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Script Modal -->
+    <div id="add-script-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Add New Script</h3>
+                <span class="modal-close" onclick="vf_close_add_script_modal()">&times;</span>
+            </div>
+            <div class="modal-body">
                 <!-- Add Script Form -->
                 <div class="script-manager-section">
                     <h4>Add New Script</h4>
@@ -171,14 +190,6 @@
                         </label>
                     </div>
                     <button class="btn btn-success" onclick="vf_add_script()">Add Script</button>
-                </div>
-
-                <!-- Current Scripts List -->
-                <div class="script-manager-section">
-                    <h4>Current Scripts</h4>
-                    <div id="script-list" class="script-list">
-                        <!-- Script items will be populated here -->
-                    </div>
                 </div>
             </div>
         </div>
