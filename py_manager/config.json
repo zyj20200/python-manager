@@ -1,0 +1,31 @@
+{
+  "manager_settings": {
+    "port": 8080,
+    "log_retention_days": 7,
+    "check_interval_seconds": 5,
+    "auto_restart_max_attempts": 3,
+    "auto_restart_delay_seconds": 10
+  },
+  "scripts": [
+    {
+      "id": "script_de885b05",
+      "name": "download-web",
+      "path": "/home/zz/project/app_download/download2/gradio_app.py",
+      "args": [],
+      "auto_restart": true,
+      "enabled": true,
+      "max_memory_mb": 512,
+      "log_file": "script_de885b05.log"
+    },
+    {
+      "id": "script_9ce79aad",
+      "name": "download-server",
+      "path": "/home/zz/project/app_download/download2/api.py",
+      "args": [],
+      "auto_restart": true,
+      "enabled": true,
+      "max_memory_mb": 512,
+      "log_file": "script_9ce79aad.log"
+    }
+  ]
+}

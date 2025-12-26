@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Python Manager - Process Control Dashboard</title>
+    <!-- Use absolute paths for all-in-one server -->
+    <link rel="stylesheet" href="./py_manager.css">
+    <!-- Socket.IO with CDN fallback -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
+    <script>
+        // Fallback to local file if CDN fails
+        if (typeof io === 'undefined') {
+            document.write('<script src="./socket.io.min.js"><\/script>');
+        }
+    </script>
+    
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Python Manager Dashboard</h1>
+            <div class="connection-status">
+                <span class="status-indicator" id="connection-status"></span>
+                <span id="connection-text">Disconnected</span>
+            </div>
+            <button class="btn btn-secondary" onclick="vf_toggle_dark_mode()" style="margin-left: 1rem;">
+                🌓 Toggle Theme
+            </button>
+        </header>
+
+        <!-- After header, before main-content -->
+<div class="stats-bar">
+    <div class="stat-group">
+        <div class="stat-item">
+            <span class="stat-label">Total Scripts:</span>
+            <span class="stat-value" id="stat-total">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Running:</span>
+            <span class="stat-value stat-running" id="stat-running">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Stopped:</span>
+            <span class="stat-value stat-stopped" id="stat-stopped">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">CPU Total:</span>
+            <span class="stat-value" id="stat-cpu">0%</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Memory Total:</span>
+            <span class="stat-value" id="stat-memory">0 MB</span>
+        </div>
+    </div>
+    <div class="bulk-actions">
+        <button class="btn btn-success" onclick="vf_start_all_scripts()" title="Start all enabled scripts">
+            Start All
+        </button>
+        <button class="btn btn-danger" onclick="vf_stop_all_scripts()" title="Stop all running scripts">
+            Stop All
+        </button>
+        <button class="btn btn-primary" onclick="vf_reload_config()" title="Reload configuration (Alt+R)">
+            Reload Config
+        </button>
+        <button class="btn btn-info" onclick="vf_show_script_manager()" title="Manage Scripts">
+            Manage Scripts
+        </button>
+    </div>
+</div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Scripts Grid -->
+            <section class="scripts-section">
+                <div class="section-header">
+                    <h2>Managed Scripts</h2>
+                </div>
+                
+                <div id="scripts-grid" class="scripts-grid">
+                    <!-- Script cards will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Logs Section -->
+            <section class="logs-section">
+                <div class="section-header">
+                    <h2>Logs</h2>
+                    <div class="log-controls">
+                        <select id="log-selector" onchange="vf_change_log_view()">
+                            <option value="manager">Manager Logs</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="vf_refresh_logs()">
+                            Refresh
+                        </button>
+                        <button class="btn btn-secondary" onclick="vf_clear_log_view()">
+                            Clear View
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="log-viewer" class="log-viewer">
+                    <div class="log-empty">Select a script to view logs</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-info">
+                <span>Python Manager v1.0.0</span>
+                <span id="last-update">Last update: Never</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal for confirmations -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Confirm Action</h3>
+                <span class="modal-close" onclick="vf_close_modal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="modal-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="vf_close_modal()">Cancel</button>
+                <button class="btn btn-primary" id="modal-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Manager Modal -->
+    <div id="script-manager-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Script Manager</h3>
+                <span class="modal-close" onclick="vf_close_script_manager()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <!-- Add Script Form -->
+                <div class="script-manager-section">
+                    <h4>Add New Script</h4>
+                    <div class="form-group">
+                        <label>Script Path:</label>
+                        <input type="text" id="new-script-path" placeholder="e.g. D:\xampp\htdocs\mpy0\scripts\example.py">
+                        <input type="file" id="file-picker" accept=".py" style="display: none;" onchange="vf_handle_file_select(event)">
+                        <button class="btn btn-secondary" onclick="document.getElementById('file-picker').click()">Browse</button>
+                        <small style="color: #666; display: block; margin-top: 0.25rem;">Browse auto-completes to scripts directory. Edit path if your script is elsewhere.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Display Name:</label>
+                        <input type="text" id="new-script-name" placeholder="Optional - defaults to filename">
+                    </div>
+                    <div class="form-group">
+                        <label>Arguments:</label>
+                        <input type="text" id="new-script-args" placeholder="Space-separated arguments (optional)">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="new-script-auto-restart" checked>
+                            Auto-restart on failure
+                        </label>
+                    </div>
+                    <button class="btn btn-success" onclick="vf_add_script()">Add Script</button>
+                </div>
+
+                <!-- Current Scripts List -->
+                <div class="script-manager-section">
+                    <h4>Current Scripts</h4>
+                    <div id="script-list" class="script-list">
+                        <!-- Script items will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="/py_interface.js"></script>
+</body>
+</html>

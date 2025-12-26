@@ -1,0 +1,16 @@
+{
+  "api_settings": {
+    "host": "127.0.0.1",
+    "port": 55000,
+    "debug": false,
+    "cors_origins": ["http://localhost:8080", "http://127.0.0.1:8080", "http://localhost:*", "http://127.0.0.1:*"],
+    "secret_key": "CHANGE-THIS-SECRET-KEY-IN-PRODUCTION",
+    "auth_enabled": false,
+    "auth_token": "CHANGE-THIS-TOKEN-IF-AUTH-ENABLED"
+  },
+  "websocket_settings": {
+    "ping_timeout": 60,
+    "ping_interval": 25,
+    "update_interval": 2
+  }
+}
