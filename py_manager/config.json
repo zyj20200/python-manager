@@ -29,13 +29,14 @@
     },
     {
       "id": "script_35a3d1b6",
-      "name": "A",
+      "name": "A123123",
       "path": "C:\\Users\\admin\\Downloads\\test\\a.py",
       "args": [],
       "auto_restart": true,
       "enabled": true,
       "max_memory_mb": 512,
-      "log_file": "script_35a3d1b6.log"
+      "log_file": "script_35a3d1b6.log",
+      "interpreter": null
     }
   ]
 }

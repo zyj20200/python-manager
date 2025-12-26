@@ -14,6 +14,7 @@ A web-based tool for managing multiple Python scripts with real-time monitoring,
 ## ✨ Features
 
 - **🚀 Multi-Script Management**: Start, stop, and restart Python scripts from anywhere on your system
+- **✏️ Script Editing**: Edit script configurations (arguments, interpreter, memory limits) directly from the UI
 - **📊 Real-time Monitoring**: Track CPU and memory usage for each script
 - **🔄 Auto-Restart**: Automatically restart scripts on failure with configurable retry limits
 - **📝 Centralized Logging**: View logs for all scripts in one place
@@ -73,15 +74,21 @@ Required packages (automatically installed):
 
 ## 🎯 Usage
 
-### Adding Scripts
+### Adding and Editing Scripts
 
-1. **Via Web Interface** (Easy):
+1. **Adding Scripts**:
    - Click the "⚙ Manage Scripts" button
    - Enter the full path to your Python script or browse for it
    - Configure display name, arguments, and auto-restart options
    - Click "Add Script"
 
-2. **Via Configuration File**:
+2. **Editing Scripts**:
+   - In the "Manage Scripts" modal, find the script you want to modify
+   - Click the "Edit" button next to the script
+   - Update configurations such as arguments, interpreter path, memory limit, etc.
+   - Click "Save Changes"
+
+3. **Via Configuration File**:
    Edit `py_manager/config.json`:
    ```json
    {

@@ -184,6 +184,55 @@
         </div>
     </div>
 
+    <!-- Edit Script Modal -->
+    <div id="script-edit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Script</h3>
+                <span class="modal-close" onclick="vf_close_edit_script_modal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-script-id">
+                <div class="form-group">
+                    <label>Script Path (Read-only):</label>
+                    <input type="text" id="edit-script-path" readonly disabled style="background-color: #f0f0f0; color: #666;">
+                </div>
+                <div class="form-group">
+                    <label>Display Name:</label>
+                    <input type="text" id="edit-script-name">
+                </div>
+                <div class="form-group">
+                    <label>Arguments:</label>
+                    <input type="text" id="edit-script-args" placeholder="Space-separated arguments">
+                </div>
+                <div class="form-group">
+                    <label>Python Interpreter Path:</label>
+                    <input type="text" id="edit-script-interpreter" placeholder="Optional - defaults to system python">
+                </div>
+                <div class="form-group">
+                    <label>Max Memory (MB):</label>
+                    <input type="number" id="edit-script-memory" placeholder="512">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="edit-script-auto-restart">
+                        Auto-restart on failure
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="edit-script-enabled">
+                        Enabled
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="vf_close_edit_script_modal()">Cancel</button>
+                <button class="btn btn-primary" onclick="vf_save_script_changes()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
 <!-- Toast Container -->
 <div id="toast-container" class="toast-container"></div>
 

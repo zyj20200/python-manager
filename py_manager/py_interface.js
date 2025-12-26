@@ -783,12 +783,90 @@ function vf_populate_script_list() {
                 <div class="script-item-path">${vf_script.path}</div>
             </div>
             <div class="script-item-actions">
+                <button class="btn btn-primary btn-sm" onclick="vf_show_edit_script_modal('${vf_script.id}')" style="margin-right: 5px;">
+                    Edit
+                </button>
                 <button class="btn btn-danger btn-sm" onclick="vf_remove_script('${vf_script.id}')">
                     Remove
                 </button>
             </div>
         `;
         vf_list.appendChild(vf_item);
+    });
+}
+
+function vf_show_edit_script_modal(vf_script_id) {
+    var vf_script = ag_scripts.find(s => s.id === vf_script_id);
+    if (!vf_script) {
+        vf_show_notification('Script not found', 'error');
+        return;
+    }
+
+    document.getElementById('edit-script-id').value = vf_script.id;
+    document.getElementById('edit-script-path').value = vf_script.path;
+    document.getElementById('edit-script-name').value = vf_script.name;
+    document.getElementById('edit-script-args').value = Array.isArray(vf_script.args) ? vf_script.args.join(' ') : (vf_script.args || '');
+    document.getElementById('edit-script-interpreter').value = vf_script.interpreter || '';
+    document.getElementById('edit-script-memory').value = vf_script.max_memory_mb || 512;
+    document.getElementById('edit-script-auto-restart').checked = vf_script.auto_restart !== false;
+    document.getElementById('edit-script-enabled').checked = vf_script.enabled !== false;
+
+    // Hide script manager modal if open
+    document.getElementById('script-manager-modal').style.display = 'none';
+    
+    // Show edit modal
+    document.getElementById('script-edit-modal').style.display = 'block';
+}
+
+function vf_close_edit_script_modal() {
+    document.getElementById('script-edit-modal').style.display = 'none';
+    // Re-open script manager modal
+    document.getElementById('script-manager-modal').style.display = 'block';
+}
+
+function vf_save_script_changes() {
+    var vf_script_id = document.getElementById('edit-script-id').value;
+    var vf_name = document.getElementById('edit-script-name').value.trim();
+    var vf_args = document.getElementById('edit-script-args').value.trim();
+    var vf_interpreter = document.getElementById('edit-script-interpreter').value.trim();
+    var vf_memory = parseInt(document.getElementById('edit-script-memory').value) || 512;
+    var vf_auto_restart = document.getElementById('edit-script-auto-restart').checked;
+    var vf_enabled = document.getElementById('edit-script-enabled').checked;
+
+    var vf_data = {
+        name: vf_name,
+        args: vf_args ? vf_args.split(' ') : [],
+        interpreter: vf_interpreter || null,
+        max_memory_mb: vf_memory,
+        auto_restart: vf_auto_restart,
+        enabled: vf_enabled
+    };
+
+    fetch(vg_api_base + '/scripts/' + vf_script_id + '/update', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(vf_data)
+    })
+    .then(vf_response => vf_response.json())
+    .then(vf_data => {
+        if (vf_data.success) {
+            vf_show_notification('Script updated successfully', 'success');
+            vf_close_edit_script_modal();
+            
+            // Refresh data
+            vf_fetch_initial_data().then(function() {
+                // After data is refreshed, update the script list
+                vf_populate_script_list();
+            });
+        } else {
+            vf_show_notification('Failed to update script: ' + (vf_data.error || 'Unknown error'), 'error');
+        }
+    })
+    .catch(vf_error => {
+        console.error('Error updating script:', vf_error);
+        vf_show_notification('Error updating script', 'error');
     });
 }
 

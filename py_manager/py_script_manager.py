@@ -114,6 +114,8 @@ def vf_update_script(vf_script_id, vf_updates):
                 vf_script['enabled'] = vf_updates['enabled']
             if 'max_memory_mb' in vf_updates:
                 vf_script['max_memory_mb'] = vf_updates['max_memory_mb']
+            if 'interpreter' in vf_updates:
+                vf_script['interpreter'] = vf_updates['interpreter']
             vf_script_found = True
             break
     
