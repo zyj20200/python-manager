@@ -86,6 +86,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    max-height: calc(100vh - 260px);
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
+.scripts-grid .script-card {
+    flex: 0 0 auto;
 }
 
 /* Script Card */
