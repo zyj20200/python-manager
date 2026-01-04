@@ -199,3 +199,4 @@ desktop.ini
 deploy/*.zip
 deploy/python_manager_portable_*.zip
 py_manager\config.json
+CLAUDE.md

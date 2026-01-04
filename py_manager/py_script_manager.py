@@ -28,28 +28,28 @@ def vf_save_config(vf_config):
         print(f"Error saving config: {e}")
         return False
 
-def vf_add_script(vf_script_path, vf_name=None, vf_args=None, vf_auto_restart=True, vf_interpreter=None):
+def vf_add_script(vf_script_path, vf_name=None, vf_args=None, vf_auto_restart=True, vf_interpreter=None, vf_group=None):
     """Add a new script to the configuration"""
     # Load current config
     vf_config = vf_load_config()
     if not vf_config:
         return {"success": False, "error": "Failed to load configuration"}
-    
+
     # Validate script path
     vf_abs_path = os.path.abspath(vf_script_path)
     if not os.path.exists(vf_abs_path):
         return {"success": False, "error": f"Script not found: {vf_abs_path}"}
-    
+
     if not vf_abs_path.endswith('.py'):
         return {"success": False, "error": "Only Python (.py) files are supported"}
-    
+
     # Generate script ID
     vf_script_id = f"script_{uuid.uuid4().hex[:8]}"
-    
+
     # Use filename as name if not provided
     if not vf_name:
         vf_name = os.path.basename(vf_abs_path).replace('.py', '').replace('_', ' ').title()
-    
+
     # Create script entry
     vf_new_script = {
         "id": vf_script_id,
@@ -59,12 +59,13 @@ def vf_add_script(vf_script_path, vf_name=None, vf_args=None, vf_auto_restart=Tr
         "auto_restart": vf_auto_restart,
         "enabled": True,
         "max_memory_mb": 512,
-        "log_file": f"{vf_script_id}.log"
+        "log_file": f"{vf_script_id}.log",
+        "group": vf_group or "Default"
     }
-    
+
     if vf_interpreter:
         vf_new_script["interpreter"] = vf_interpreter
-    
+
     # Add to config
     vf_config['scripts'].append(vf_new_script)
     
@@ -98,7 +99,7 @@ def vf_update_script(vf_script_id, vf_updates):
     vf_config = vf_load_config()
     if not vf_config:
         return {"success": False, "error": "Failed to load configuration"}
-    
+
     # Find script
     vf_script_found = False
     for vf_script in vf_config['scripts']:
@@ -116,6 +117,8 @@ def vf_update_script(vf_script_id, vf_updates):
                 vf_script['max_memory_mb'] = vf_updates['max_memory_mb']
             if 'interpreter' in vf_updates:
                 vf_script['interpreter'] = vf_updates['interpreter']
+            if 'group' in vf_updates:
+                vf_script['group'] = vf_updates['group']
             vf_script_found = True
             break
     

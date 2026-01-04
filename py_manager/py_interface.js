@@ -131,16 +131,148 @@ function vf_handle_status_update(af_status) {
     vf_update_last_update_time();
 }
 
-// Render scripts grid
+// Render scripts grid with groups
 function vf_render_scripts_grid() {
     var vf_grid = document.getElementById('scripts-grid');
     vf_grid.innerHTML = '';
-    
+
+    // Group scripts by their group field
+    var vf_groups = {};
     for (var vf_script_id in vg_scripts_status) {
         var vf_script = vg_scripts_status[vf_script_id];
-        var vf_card = vf_create_script_card(vf_script);
-        vf_grid.appendChild(vf_card);
+        var vf_group_name = vf_script.group || 'Default';
+
+        if (!vf_groups[vf_group_name]) {
+            vf_groups[vf_group_name] = [];
+        }
+        vf_groups[vf_group_name].push(vf_script);
     }
+
+    // Sort group names alphabetically
+    var vf_group_names = Object.keys(vf_groups).sort();
+
+    // Create a group panel for each group
+    vf_group_names.forEach(function(vf_group_name) {
+        var vf_group_scripts = vf_groups[vf_group_name];
+
+        // Calculate group statistics
+        var vf_running_count = 0;
+        var vf_stopped_count = 0;
+        var vf_total_cpu = 0;
+        var vf_total_memory = 0;
+
+        vf_group_scripts.forEach(function(vf_script) {
+            if (vf_script.status === 'running') {
+                vf_running_count++;
+                vf_total_cpu += vf_script.cpu_percent || 0;
+                vf_total_memory += vf_script.memory_mb || 0;
+            } else {
+                vf_stopped_count++;
+            }
+        });
+
+        // Create group container
+        var vf_group_container = document.createElement('div');
+        vf_group_container.className = 'script-group';
+        vf_group_container.id = 'group-' + vf_group_name.replace(/\s+/g, '-');
+
+        // Create group header
+        var vf_group_header = document.createElement('div');
+        vf_group_header.className = 'script-group-header';
+        vf_group_header.onclick = function() { vf_toggle_group(vf_group_name); };
+
+        vf_group_header.innerHTML = `
+            <div class="group-title-row">
+                <span class="group-toggle-icon" id="toggle-${vf_group_name.replace(/\s+/g, '-')}">▼</span>
+                <span class="group-name">${vf_group_name}</span>
+                <span class="group-count">(${vf_group_scripts.length} scripts)</span>
+            </div>
+            <div class="group-stats">
+                <span class="group-stat">
+                    <span class="stat-label">Running:</span>
+                    <span class="stat-value stat-running">${vf_running_count}</span>
+                </span>
+                <span class="group-stat">
+                    <span class="stat-label">Stopped:</span>
+                    <span class="stat-value stat-stopped">${vf_stopped_count}</span>
+                </span>
+                ${vf_running_count > 0 ? `
+                <span class="group-stat">
+                    <span class="stat-label">CPU:</span>
+                    <span class="stat-value">${vf_total_cpu.toFixed(1)}%</span>
+                </span>
+                <span class="group-stat">
+                    <span class="stat-label">Memory:</span>
+                    <span class="stat-value">${vf_total_memory.toFixed(1)} MB</span>
+                </span>
+                ` : ''}
+            </div>
+        `;
+
+        // Create group content (scripts container)
+        var vf_group_content = document.createElement('div');
+        vf_group_content.className = 'script-group-content expanded';
+        vf_group_content.id = 'content-' + vf_group_name.replace(/\s+/g, '-');
+
+        // Add all scripts in this group
+        vf_group_scripts.forEach(function(vf_script) {
+            var vf_card = vf_create_script_card(vf_script);
+            vf_group_content.appendChild(vf_card);
+        });
+
+        // Assemble group
+        vf_group_container.appendChild(vf_group_header);
+        vf_group_container.appendChild(vf_group_content);
+        vf_grid.appendChild(vf_group_container);
+    });
+
+    // Update overall statistics
+    vf_update_overall_stats();
+}
+
+// Toggle group expand/collapse
+function vf_toggle_group(vf_group_name) {
+    var vf_group_id = vf_group_name.replace(/\s+/g, '-');
+    var vf_content = document.getElementById('content-' + vf_group_id);
+    var vf_toggle_icon = document.getElementById('toggle-' + vf_group_id);
+
+    if (vf_content.classList.contains('expanded')) {
+        vf_content.classList.remove('expanded');
+        vf_content.classList.add('collapsed');
+        vf_toggle_icon.textContent = '▶';
+    } else {
+        vf_content.classList.remove('collapsed');
+        vf_content.classList.add('expanded');
+        vf_toggle_icon.textContent = '▼';
+    }
+}
+
+// Update overall statistics
+function vf_update_overall_stats() {
+    var vf_total = 0;
+    var vf_running = 0;
+    var vf_stopped = 0;
+    var vf_total_cpu = 0;
+    var vf_total_memory = 0;
+
+    for (var vf_script_id in vg_scripts_status) {
+        var vf_script = vg_scripts_status[vf_script_id];
+        vf_total++;
+
+        if (vf_script.status === 'running') {
+            vf_running++;
+            vf_total_cpu += vf_script.cpu_percent || 0;
+            vf_total_memory += vf_script.memory_mb || 0;
+        } else {
+            vf_stopped++;
+        }
+    }
+
+    document.getElementById('stat-total').textContent = vf_total;
+    document.getElementById('stat-running').textContent = vf_running;
+    document.getElementById('stat-stopped').textContent = vf_stopped;
+    document.getElementById('stat-cpu').textContent = vf_total_cpu.toFixed(1) + '%';
+    document.getElementById('stat-memory').textContent = vf_total_memory.toFixed(1) + ' MB';
 }
 
 // Create script card
@@ -815,6 +947,8 @@ function vf_close_script_manager() {
 }
 
 function vf_show_add_script_modal() {
+    // Populate group suggestions from existing scripts
+    vf_populate_group_suggestions('group-suggestions');
     document.getElementById('add-script-modal').style.display = 'block';
 }
 
@@ -857,15 +991,19 @@ function vf_show_edit_script_modal(vf_script_id) {
     document.getElementById('edit-script-id').value = vf_script.id;
     document.getElementById('edit-script-path').value = vf_script.path;
     document.getElementById('edit-script-name').value = vf_script.name;
+    document.getElementById('edit-script-group').value = vf_script.group || 'Default';
     document.getElementById('edit-script-args').value = Array.isArray(vf_script.args) ? vf_script.args.join(' ') : (vf_script.args || '');
     document.getElementById('edit-script-interpreter').value = vf_script.interpreter || '';
     document.getElementById('edit-script-memory').value = vf_script.max_memory_mb || 512;
     document.getElementById('edit-script-auto-restart').checked = vf_script.auto_restart !== false;
     document.getElementById('edit-script-enabled').checked = vf_script.enabled !== false;
 
+    // Populate group suggestions from existing scripts
+    vf_populate_group_suggestions('edit-group-suggestions');
+
     // Hide script manager modal if open
     document.getElementById('script-manager-modal').style.display = 'none';
-    
+
     // Show edit modal
     document.getElementById('script-edit-modal').style.display = 'block';
 }
@@ -879,6 +1017,7 @@ function vf_close_edit_script_modal() {
 function vf_save_script_changes() {
     var vf_script_id = document.getElementById('edit-script-id').value;
     var vf_name = document.getElementById('edit-script-name').value.trim();
+    var vf_group = document.getElementById('edit-script-group').value.trim();
     var vf_args = document.getElementById('edit-script-args').value.trim();
     var vf_interpreter = document.getElementById('edit-script-interpreter').value.trim();
     var vf_memory = parseInt(document.getElementById('edit-script-memory').value) || 512;
@@ -887,6 +1026,7 @@ function vf_save_script_changes() {
 
     var vf_data = {
         name: vf_name,
+        group: vf_group || 'Default',
         args: vf_args ? vf_args.split(' ') : [],
         interpreter: vf_interpreter || null,
         max_memory_mb: vf_memory,
@@ -906,7 +1046,7 @@ function vf_save_script_changes() {
         if (vf_data.success) {
             vf_show_notification('Script updated successfully', 'success');
             vf_close_edit_script_modal();
-            
+
             // Refresh data
             vf_fetch_initial_data().then(function() {
                 // After data is refreshed, update the script list
@@ -925,36 +1065,38 @@ function vf_save_script_changes() {
 function vf_add_script() {
     var vf_path = document.getElementById('new-script-path').value.trim();
     var vf_name = document.getElementById('new-script-name').value.trim();
+    var vf_group = document.getElementById('new-script-group').value.trim();
     var vf_args = document.getElementById('new-script-args').value.trim();
     var vf_interpreter = document.getElementById('new-script-interpreter').value.trim();
     var vf_auto_restart = document.getElementById('new-script-auto-restart').checked;
-    
+
     if (!vf_path) {
         vf_show_notification('Please enter a script path', 'error');
         return;
     }
-    
+
     // Check if it's a full path (contains directory separators)
     if (!vf_path.includes('\\') && !vf_path.includes('/')) {
         vf_show_notification('Please enter the full path including directory (e.g., D:\\path\\to\\' + vf_path + ')', 'error');
         document.getElementById('new-script-path').focus();
         return;
     }
-    
+
     // Check if it ends with .py
     if (!vf_path.endsWith('.py')) {
         vf_show_notification('Script path must end with .py', 'error');
         return;
     }
-    
+
     var vf_data = {
         path: vf_path,
         name: vf_name || null,
+        group: vf_group || 'Default',
         args: vf_args ? vf_args.split(' ') : [],
         interpreter: vf_interpreter || null,
         auto_restart: vf_auto_restart
     };
-    
+
     fetch(vg_api_base + '/scripts/add', {
         method: 'POST',
         headers: {
@@ -969,6 +1111,7 @@ function vf_add_script() {
             // Clear form
             document.getElementById('new-script-path').value = '';
             document.getElementById('new-script-name').value = '';
+            document.getElementById('new-script-group').value = '';
             document.getElementById('new-script-args').value = '';
             document.getElementById('new-script-interpreter').value = '';
             document.getElementById('new-script-auto-restart').checked = true;
@@ -1063,4 +1206,31 @@ function vf_toggle_dark_mode() {
 // Load dark mode preference
 if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark-mode');
+}
+
+// Populate group suggestions from existing scripts
+function vf_populate_group_suggestions(vf_datalist_id) {
+    var vf_datalist = document.getElementById(vf_datalist_id);
+    if (!vf_datalist) return;
+
+    // Clear existing options
+    vf_datalist.innerHTML = '';
+
+    // Collect unique group names from existing scripts
+    var vf_groups = new Set();
+    ag_scripts.forEach(function(vf_script) {
+        if (vf_script.group) {
+            vf_groups.add(vf_script.group);
+        }
+    });
+
+    // Add Default if not present
+    vf_groups.add('Default');
+
+    // Create options for each group
+    vf_groups.forEach(function(vf_group) {
+        var vf_option = document.createElement('option');
+        vf_option.value = vf_group;
+        vf_datalist.appendChild(vf_option);
+    });
 }

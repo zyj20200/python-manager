@@ -180,6 +180,12 @@
                         <input type="text" id="new-script-name" placeholder="Optional - defaults to filename">
                     </div>
                     <div class="form-group">
+                        <label>Group:</label>
+                        <input type="text" id="new-script-group" placeholder="e.g. Web Services, Data Processing, Default" list="group-suggestions">
+                        <datalist id="group-suggestions"></datalist>
+                        <small style="color: #666; display: block; margin-top: 0.25rem;">Group name for organizing scripts. Defaults to "Default".</small>
+                    </div>
+                    <div class="form-group">
                         <label>Arguments:</label>
                         <input type="text" id="new-script-args" placeholder="Space-separated arguments (optional)">
                     </div>
@@ -211,6 +217,12 @@
                 <div class="form-group">
                     <label>Display Name:</label>
                     <input type="text" id="edit-script-name">
+                </div>
+                <div class="form-group">
+                    <label>Group:</label>
+                    <input type="text" id="edit-script-group" placeholder="e.g. Web Services, Data Processing, Default" list="edit-group-suggestions">
+                    <datalist id="edit-group-suggestions"></datalist>
+                    <small style="color: #666; display: block; margin-top: 0.25rem;">Group name for organizing scripts.</small>
                 </div>
                 <div class="form-group">
                     <label>Arguments:</label>

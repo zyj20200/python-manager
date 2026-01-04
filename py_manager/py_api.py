@@ -283,7 +283,8 @@ def route_add_script():
         vf_name=vf_data.get('name'),
         vf_args=vf_data.get('args', []),
         vf_auto_restart=vf_data.get('auto_restart', True),
-        vf_interpreter=vf_data.get('interpreter')
+        vf_interpreter=vf_data.get('interpreter'),
+        vf_group=vf_data.get('group', 'Default')
     )
     
     if vf_result['success']:

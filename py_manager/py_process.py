@@ -263,25 +263,26 @@ def vf_monitor_processes():
 def vf_get_all_status():
     """Get status of all configured scripts"""
     ag_status = []
-    
+
     for vf_script in vg_config['scripts']:
         vf_script_id = vf_script['id']
         vf_status = {
             'id': vf_script_id,
             'name': vf_script['name'],
             'enabled': vf_script['enabled'],
-            'path': vf_script['path']
+            'path': vf_script['path'],
+            'group': vf_script.get('group', 'Default')
         }
-        
+
         if vf_is_process_running(vf_script_id):
             vf_process_info = vf_get_process_info(vf_script_id)
             vf_status.update(vf_process_info)
         else:
             vf_status['status'] = 'stopped'
             vf_status['restart_attempts'] = vg_restart_attempts.get(vf_script_id, 0)
-        
+
         ag_status.append(vf_status)
-    
+
     return ag_status
 
 def vf_cleanup():
