@@ -267,17 +267,22 @@ function vf_create_script_card(vf_script) {
 
     vf_card.innerHTML = `
         <div class="script-header">
-            <div class="script-name">${vf_script.name}</div>
+            <div class="script-name" title="${vf_script.name}">${vf_script.name}</div>
             <div class="script-status ${vf_script.status}">
                 <span class="status-dot"></span>
                 ${vf_status_text}
             </div>
         </div>
 
-        <div class="script-info">
+        <div class="script-details-toggle" onclick="vf_toggle_script_details('${vf_script.id}')">
+            <span id="details-icon-${vf_script.id}">▶</span>
+            <span>详细信息</span>
+        </div>
+
+        <div class="script-details-content" id="details-content-${vf_script.id}">
             <div class="info-row">
                 <span class="info-label">ID:</span>
-                <span class="info-value">${vf_script.id}</span>
+                <span class="info-value" title="${vf_script.id}">${vf_script.id.substring(0, 8)}...</span>
             </div>
             ${vf_is_running ? `
                 <div class="info-row">
@@ -317,11 +322,27 @@ function vf_create_script_card(vf_script) {
             ` : `
                 <button class="btn btn-success" onclick="vf_start_script('${vf_script.id}')">启动</button>
             `}
-            <button class="btn btn-secondary" onclick="vf_view_script_logs('${vf_script.id}')">查看日志</button>
+            <button class="btn btn-secondary" onclick="vf_view_script_logs('${vf_script.id}')">日志</button>
         </div>
     `;
 
     return vf_card;
+}
+
+// Toggle script details
+function vf_toggle_script_details(vf_script_id) {
+    var vf_content = document.getElementById('details-content-' + vf_script_id);
+    var vf_icon = document.getElementById('details-icon-' + vf_script_id);
+
+    if (vf_content.classList.contains('expanded')) {
+        vf_content.classList.remove('expanded');
+        vf_icon.textContent = '▶';
+        vf_icon.style.transform = 'rotate(0deg)';
+    } else {
+        vf_content.classList.add('expanded');
+        vf_icon.textContent = '▼';
+        vf_icon.style.transform = 'rotate(0deg)';
+    }
 }
 
 // Update the fetch error handling to show user-friendly messages
