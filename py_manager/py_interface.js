@@ -28,6 +28,7 @@ window.addEventListener('DOMContentLoaded', function() {
     
     vf_fetch_initial_data();
     vf_start_polling();
+    vf_init_splitter();
 });
 
 // WebSocket functions
@@ -48,14 +49,14 @@ function vf_init_websocket() {
             vg_connected = true;
             vf_update_connection_status(true);
             console.log('Connected to WebSocket');
-            vf_show_notification('Connected to server', 'success');
+            vf_show_notification('已连接到服务器', 'success');
         });
-        
+
         vg_socket.on('disconnect', function() {
             vg_connected = false;
             vf_update_connection_status(false);
             console.log('Disconnected from WebSocket');
-            vf_show_notification('Disconnected from server', 'error');
+            vf_show_notification('已断开与服务器的连接', 'error');
         });
         
         vg_socket.on('status_update', function(data) {
@@ -78,10 +79,10 @@ function vf_update_connection_status(vf_connected) {
     
     if (vf_connected) {
         vf_indicator.classList.add('connected');
-        vf_text.textContent = 'Connected';
+        vf_text.textContent = '已连接';
     } else {
         vf_indicator.classList.remove('connected');
-        vf_text.textContent = 'Disconnected';
+        vf_text.textContent = '未连接';
     }
 }
 
@@ -185,27 +186,7 @@ function vf_render_scripts_grid() {
             <div class="group-title-row">
                 <span class="group-toggle-icon" id="toggle-${vf_group_name.replace(/\s+/g, '-')}">▼</span>
                 <span class="group-name">${vf_group_name}</span>
-                <span class="group-count">(${vf_group_scripts.length} scripts)</span>
-            </div>
-            <div class="group-stats">
-                <span class="group-stat">
-                    <span class="stat-label">Running:</span>
-                    <span class="stat-value stat-running">${vf_running_count}</span>
-                </span>
-                <span class="group-stat">
-                    <span class="stat-label">Stopped:</span>
-                    <span class="stat-value stat-stopped">${vf_stopped_count}</span>
-                </span>
-                ${vf_running_count > 0 ? `
-                <span class="group-stat">
-                    <span class="stat-label">CPU:</span>
-                    <span class="stat-value">${vf_total_cpu.toFixed(1)}%</span>
-                </span>
-                <span class="group-stat">
-                    <span class="stat-label">Memory:</span>
-                    <span class="stat-value">${vf_total_memory.toFixed(1)} MB</span>
-                </span>
-                ` : ''}
+                <span class="group-count" style="color: var(--text-secondary); font-size: 0.85rem; margin-left: 0.5rem;">(${vf_group_scripts.length})</span>
             </div>
         `;
 
@@ -280,18 +261,19 @@ function vf_create_script_card(vf_script) {
     var vf_card = document.createElement('div');
     vf_card.className = 'script-card';
     vf_card.id = 'script-' + vf_script.id;
-    
+
     var vf_is_running = vf_script.status === 'running';
-    
+    var vf_status_text = vf_is_running ? '运行中' : '已停止';
+
     vf_card.innerHTML = `
         <div class="script-header">
             <div class="script-name">${vf_script.name}</div>
             <div class="script-status ${vf_script.status}">
                 <span class="status-dot"></span>
-                ${vf_script.status.toUpperCase()}
+                ${vf_status_text}
             </div>
         </div>
-        
+
         <div class="script-info">
             <div class="info-row">
                 <span class="info-label">ID:</span>
@@ -307,45 +289,45 @@ function vf_create_script_card(vf_script) {
                     <span class="info-value">${vf_script.cpu_percent.toFixed(1)}%</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Memory:</span>
+                    <span class="info-label">内存:</span>
                     <span class="info-value">${vf_script.memory_mb.toFixed(1)} MB</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Uptime:</span>
+                    <span class="info-label">运行时长:</span>
                     <span class="info-value">${vf_calculate_uptime(vf_script.start_time)}</span>
                 </div>
             ` : `
                 <div class="info-row">
-                    <span class="info-label">Status:</span>
-                    <span class="info-value">Not running</span>
+                    <span class="info-label">状态:</span>
+                    <span class="info-value">未运行</span>
                 </div>
                 ${vf_script.restart_attempts > 0 ? `
                     <div class="info-row">
-                        <span class="info-label">Restart attempts:</span>
+                        <span class="info-label">重启尝试:</span>
                         <span class="info-value">${vf_script.restart_attempts}</span>
                     </div>
                 ` : ''}
             `}
         </div>
-        
+
         <div class="script-actions">
             ${vf_is_running ? `
-                <button class="btn btn-danger" onclick="vf_stop_script('${vf_script.id}')">Stop</button>
-                <button class="btn btn-warning" onclick="vf_restart_script('${vf_script.id}')">Restart</button>
+                <button class="btn btn-danger" onclick="vf_stop_script('${vf_script.id}')">停止</button>
+                <button class="btn btn-warning" onclick="vf_restart_script('${vf_script.id}')">重启</button>
             ` : `
-                <button class="btn btn-success" onclick="vf_start_script('${vf_script.id}')">Start</button>
+                <button class="btn btn-success" onclick="vf_start_script('${vf_script.id}')">启动</button>
             `}
-            <button class="btn btn-secondary" onclick="vf_view_script_logs('${vf_script.id}')">View Logs</button>
+            <button class="btn btn-secondary" onclick="vf_view_script_logs('${vf_script.id}')">查看日志</button>
         </div>
     `;
-    
+
     return vf_card;
 }
 
 // Update the fetch error handling to show user-friendly messages
 function vf_start_script(vf_script_id) {
     vf_set_button_loading(vf_script_id, true);
-    
+
     fetch(vg_api_base + '/scripts/' + vf_script_id + '/start', {
         method: 'POST'
     })
@@ -357,14 +339,14 @@ function vf_start_script(vf_script_id) {
     })
     .then(vf_data => {
         if (vf_data.success) {
-            vf_show_notification('Script started successfully', 'success');
+            vf_show_notification('脚本启动成功', 'success');
             vf_fetch_status();
         } else {
-            vf_show_notification('Failed to start script: ' + (vf_data.error || 'Unknown error'), 'error');
+            vf_show_notification('启动脚本失败: ' + (vf_data.error || 'Unknown error'), 'error');
         }
     })
     .catch(vf_error => {
-        vf_show_notification('Error starting script', 'error');
+        vf_show_notification('启动脚本出错', 'error');
         console.error('Error:', vf_error);
     })
     .finally(() => {
@@ -375,23 +357,23 @@ function vf_start_script(vf_script_id) {
 }
 
 function vf_stop_script(vf_script_id) {
-    vf_confirm_action('Stop Script', 'Are you sure you want to stop this script?', function() {
+    vf_confirm_action('停止脚本', '确定要停止此脚本吗？', function() {
         vf_set_button_loading(vf_script_id, true);
-        
+
         fetch(vg_api_base + '/scripts/' + vf_script_id + '/stop', {
             method: 'POST'
         })
         .then(vf_response => vf_response.json())
         .then(vf_data => {
             if (vf_data.success) {
-                vf_show_notification('Script stopped successfully', 'success');
+                vf_show_notification('脚本停止成功', 'success');
                 vf_fetch_status();
             } else {
-                vf_show_notification('Failed to stop script: ' + vf_data.error, 'error');
+                vf_show_notification('停止脚本失败: ' + vf_data.error, 'error');
             }
         })
         .catch(vf_error => {
-            vf_show_notification('Error stopping script', 'error');
+            vf_show_notification('停止脚本出错', 'error');
             console.error('Error:', vf_error);
         })
         .finally(() => {
@@ -401,23 +383,23 @@ function vf_stop_script(vf_script_id) {
 }
 
 function vf_restart_script(vf_script_id) {
-    vf_confirm_action('Restart Script', 'Are you sure you want to restart this script?', function() {
+    vf_confirm_action('重启脚本', '确定要重启此脚本吗？', function() {
         vf_set_button_loading(vf_script_id, true);
-        
+
         fetch(vg_api_base + '/scripts/' + vf_script_id + '/restart', {
             method: 'POST'
         })
         .then(vf_response => vf_response.json())
         .then(vf_data => {
             if (vf_data.success) {
-                vf_show_notification('Script restarted successfully', 'success');
+                vf_show_notification('脚本重启成功', 'success');
                 vf_fetch_status();
             } else {
-                vf_show_notification('Failed to restart script: ' + vf_data.error, 'error');
+                vf_show_notification('重启脚本失败: ' + vf_data.error, 'error');
             }
         })
         .catch(vf_error => {
-            vf_show_notification('Error restarting script', 'error');
+            vf_show_notification('重启脚本出错', 'error');
             console.error('Error:', vf_error);
         })
         .finally(() => {
@@ -439,10 +421,10 @@ function vf_change_log_view() {
 }
 
 function vf_fetch_logs() {
-    var vf_endpoint = vg_current_log_script === 'manager' 
-        ? '/manager/logs' 
+    var vf_endpoint = vg_current_log_script === 'manager'
+        ? '/manager/logs'
         : '/scripts/' + vg_current_log_script + '/logs';
-    
+
     fetch(vg_api_base + vf_endpoint + '?lines=100')
         .then(vf_response => vf_response.json())
         .then(vf_data => {
@@ -455,27 +437,27 @@ function vf_fetch_logs() {
 
 function vf_display_logs(af_logs) {
     var vf_viewer = document.getElementById('log-viewer');
-    
+
     if (af_logs.length === 0) {
-        vf_viewer.innerHTML = '<div class="log-empty">No logs available</div>';
+        vf_viewer.innerHTML = '<div class="log-empty">暂无日志</div>';
         return;
     }
-    
+
     vf_viewer.innerHTML = af_logs.map(vf_log => {
         return '<div class="log-entry">' + vf_ansi_to_html(vf_log) + '</div>';
     }).join('');
-    
+
     // Scroll to bottom
     vf_viewer.scrollTop = vf_viewer.scrollHeight;
 }
 
 function vf_refresh_logs() {
     vf_fetch_logs();
-    vf_show_notification('Logs refreshed', 'success');
+    vf_show_notification('日志已刷新', 'success');
 }
 
 function vf_clear_log_view() {
-    document.getElementById('log-viewer').innerHTML = '<div class="log-empty">Log view cleared</div>';
+    document.getElementById('log-viewer').innerHTML = '<div class="log-empty">日志视图已清空</div>';
 }
 
 // Configuration
@@ -486,14 +468,14 @@ function vf_reload_config() {
     .then(vf_response => vf_response.json())
     .then(vf_data => {
         if (vf_data.success) {
-            vf_show_notification('Configuration reloaded', 'success');
+            vf_show_notification('配置已重载', 'success');
             vf_fetch_initial_data();
         } else {
-            vf_show_notification('Failed to reload configuration', 'error');
+            vf_show_notification('重载配置失败', 'error');
         }
     })
     .catch(vf_error => {
-        vf_show_notification('Error reloading configuration', 'error');
+        vf_show_notification('重载配置出错', 'error');
         console.error('Error:', vf_error);
     });
 }
@@ -503,40 +485,40 @@ function vf_calculate_uptime(vf_start_time) {
     var vf_start = new Date(vf_start_time);
     var vf_now = new Date();
     var vf_diff = vf_now - vf_start;
-    
+
     var vf_seconds = Math.floor(vf_diff / 1000);
     var vf_minutes = Math.floor(vf_seconds / 60);
     var vf_hours = Math.floor(vf_minutes / 60);
     var vf_days = Math.floor(vf_hours / 24);
-    
+
     if (vf_days > 0) {
-        return vf_days + 'd ' + (vf_hours % 24) + 'h';
+        return vf_days + '天 ' + (vf_hours % 24) + '小时';
     } else if (vf_hours > 0) {
-        return vf_hours + 'h ' + (vf_minutes % 60) + 'm';
+        return vf_hours + '小时 ' + (vf_minutes % 60) + '分钟';
     } else if (vf_minutes > 0) {
-        return vf_minutes + 'm ' + (vf_seconds % 60) + 's';
+        return vf_minutes + '分钟 ' + (vf_seconds % 60) + '秒';
     } else {
-        return vf_seconds + 's';
+        return vf_seconds + '秒';
     }
 }
 
 function vf_update_last_update_time() {
     var vf_element = document.getElementById('last-update');
     var vf_time = new Date().toLocaleTimeString();
-    vf_element.textContent = 'Last update: ' + vf_time;
+    vf_element.textContent = '最后更新: ' + vf_time;
 }
 
 function vf_update_log_selector() {
     var vf_selector = document.getElementById('log-selector');
-    
+
     // Keep manager option
-    var vf_html = '<option value="manager">Manager Logs</option>';
-    
+    var vf_html = '<option value="manager">管理器日志</option>';
+
     // Add script options
     ag_scripts.forEach(vf_script => {
-        vf_html += `<option value="${vf_script.id}">${vf_script.name} Logs</option>`;
+        vf_html += `<option value="${vf_script.id}">${vf_script.name} 日志</option>`;
     });
-    
+
     vf_selector.innerHTML = vf_html;
 }
 
@@ -697,9 +679,9 @@ document.addEventListener('keydown', function(e) {
     if (e.altKey && e.key === 's') {
         e.preventDefault();
         vf_fetch_status();
-        vf_show_notification('Status refreshed', 'info');
+        vf_show_notification('状态已刷新', 'info');
     }
-    
+
     // Alt+L: Focus log selector
     if (e.altKey && e.key === 'l') {
         e.preventDefault();
@@ -712,19 +694,19 @@ window.addEventListener('load', function() {
     // Add title attributes for keyboard shortcuts
     var vf_reload_btn = document.querySelector('button[onclick="vf_reload_config()"]');
     if (vf_reload_btn) {
-        vf_reload_btn.title = 'Reload Configuration (Alt+R)';
+        vf_reload_btn.title = '重新加载配置 (Alt+R)';
     }
 });
 
 // Start all scripts
 function vf_start_all_scripts() {
     vf_confirm_action(
-        'Start All Scripts', 
-        'Are you sure you want to start all enabled scripts?',
+        '启动所有脚本',
+        '确定要启动所有已启用的脚本吗？',
         function() {
             vf_show_loading(true);
             var ag_promises = [];
-            
+
             for (var vf_script_id in vg_scripts_status) {
                 var vf_script = vg_scripts_status[vf_script_id];
                 if (vf_script.status === 'stopped' && vf_script.enabled) {
@@ -735,14 +717,14 @@ function vf_start_all_scripts() {
                     );
                 }
             }
-            
+
             Promise.all(ag_promises)
                 .then(function() {
-                    vf_show_notification('All scripts started', 'success');
+                    vf_show_notification('所有脚本已启动', 'success');
                     vf_fetch_status();
                 })
                 .catch(function(error) {
-                    vf_show_notification('Error starting some scripts', 'error');
+                    vf_show_notification('启动部分脚本出错', 'error');
                     console.error(error);
                 })
                 .finally(function() {
@@ -755,12 +737,12 @@ function vf_start_all_scripts() {
 // Stop all scripts
 function vf_stop_all_scripts() {
     vf_confirm_action(
-        'Stop All Scripts',
-        'Are you sure you want to stop all running scripts?',
+        '停止所有脚本',
+        '确定要停止所有运行中的脚本吗？',
         function() {
             vf_show_loading(true);
             var ag_promises = [];
-            
+
             for (var vf_script_id in vg_scripts_status) {
                 var vf_script = vg_scripts_status[vf_script_id];
                 if (vf_script.status === 'running') {
@@ -771,14 +753,14 @@ function vf_stop_all_scripts() {
                     );
                 }
             }
-            
+
             Promise.all(ag_promises)
                 .then(function() {
-                    vf_show_notification('All scripts stopped', 'success');
+                    vf_show_notification('所有脚本已停止', 'success');
                     vf_fetch_status();
                 })
                 .catch(function(error) {
-                    vf_show_notification('Error stopping some scripts', 'error');
+                    vf_show_notification('停止部分脚本出错', 'error');
                     console.error(error);
                 })
                 .finally(function() {
@@ -844,7 +826,7 @@ function vf_start_auto_refresh_logs() {
             // Show indicator
             var vf_indicator = document.createElement('div');
             vf_indicator.className = 'auto-scroll-indicator';
-            vf_indicator.textContent = 'Auto-scrolling';
+            vf_indicator.textContent = '自动滚动';
             vf_indicator.onclick = vf_stop_auto_refresh_logs;
             document.querySelector('.log-viewer').appendChild(vf_indicator);
         }
@@ -927,7 +909,7 @@ document.addEventListener('dblclick', function(e) {
 if (!localStorage.getItem('welcomeShown')) {
     window.addEventListener('load', function() {
         setTimeout(function() {
-            vf_show_notification('Welcome to Python Manager! Double-click any script card to toggle it.', 'info');
+            vf_show_notification('欢迎使用 Python 脚本管理器！双击脚本卡片可快速切换状态。', 'info');
             localStorage.setItem('welcomeShown', 'true');
         }, 1000);
     });
@@ -937,7 +919,7 @@ if (!localStorage.getItem('welcomeShown')) {
 function vf_show_script_manager() {
     // Populate current scripts
     vf_populate_script_list();
-    
+
     // Show modal
     document.getElementById('script-manager-modal').style.display = 'block';
 }
@@ -959,7 +941,7 @@ function vf_close_add_script_modal() {
 function vf_populate_script_list() {
     var vf_list = document.getElementById('script-list');
     vf_list.innerHTML = '';
-    
+
     ag_scripts.forEach(function(vf_script) {
         var vf_item = document.createElement('div');
         vf_item.className = 'script-item';
@@ -970,10 +952,10 @@ function vf_populate_script_list() {
             </div>
             <div class="script-item-actions">
                 <button class="btn btn-primary btn-sm" onclick="vf_show_edit_script_modal('${vf_script.id}')" style="margin-right: 5px;">
-                    Edit
+                    编辑
                 </button>
                 <button class="btn btn-danger btn-sm" onclick="vf_remove_script('${vf_script.id}')">
-                    Remove
+                    移除
                 </button>
             </div>
         `;
@@ -984,7 +966,7 @@ function vf_populate_script_list() {
 function vf_show_edit_script_modal(vf_script_id) {
     var vf_script = ag_scripts.find(s => s.id === vf_script_id);
     if (!vf_script) {
-        vf_show_notification('Script not found', 'error');
+        vf_show_notification('脚本未找到', 'error');
         return;
     }
 
@@ -1044,7 +1026,7 @@ function vf_save_script_changes() {
     .then(vf_response => vf_response.json())
     .then(vf_data => {
         if (vf_data.success) {
-            vf_show_notification('Script updated successfully', 'success');
+            vf_show_notification('脚本更新成功', 'success');
             vf_close_edit_script_modal();
 
             // Refresh data
@@ -1053,12 +1035,12 @@ function vf_save_script_changes() {
                 vf_populate_script_list();
             });
         } else {
-            vf_show_notification('Failed to update script: ' + (vf_data.error || 'Unknown error'), 'error');
+            vf_show_notification('更新脚本失败: ' + (vf_data.error || 'Unknown error'), 'error');
         }
     })
     .catch(vf_error => {
         console.error('Error updating script:', vf_error);
-        vf_show_notification('Error updating script', 'error');
+        vf_show_notification('更新脚本出错', 'error');
     });
 }
 
@@ -1071,20 +1053,20 @@ function vf_add_script() {
     var vf_auto_restart = document.getElementById('new-script-auto-restart').checked;
 
     if (!vf_path) {
-        vf_show_notification('Please enter a script path', 'error');
+        vf_show_notification('请输入脚本路径', 'error');
         return;
     }
 
     // Check if it's a full path (contains directory separators)
     if (!vf_path.includes('\\') && !vf_path.includes('/')) {
-        vf_show_notification('Please enter the full path including directory (e.g., D:\\path\\to\\' + vf_path + ')', 'error');
+        vf_show_notification('请输入包含目录的完整路径 (例如: D:\\path\\to\\' + vf_path + ')', 'error');
         document.getElementById('new-script-path').focus();
         return;
     }
 
     // Check if it ends with .py
     if (!vf_path.endsWith('.py')) {
-        vf_show_notification('Script path must end with .py', 'error');
+        vf_show_notification('脚本路径必须以 .py 结尾', 'error');
         return;
     }
 
@@ -1107,7 +1089,7 @@ function vf_add_script() {
     .then(vf_response => vf_response.json())
     .then(vf_data => {
         if (vf_data.success) {
-            vf_show_notification('Script added successfully', 'success');
+            vf_show_notification('脚本添加成功', 'success');
             // Clear form
             document.getElementById('new-script-path').value = '';
             document.getElementById('new-script-name').value = '';
@@ -1122,19 +1104,19 @@ function vf_add_script() {
                 vf_close_add_script_modal();
             });
         } else {
-            vf_show_notification('Failed to add script: ' + vf_data.error, 'error');
+            vf_show_notification('添加脚本失败: ' + vf_data.error, 'error');
         }
     })
     .catch(vf_error => {
-        vf_show_notification('Error adding script', 'error');
+        vf_show_notification('添加脚本出错', 'error');
         console.error('Error:', vf_error);
     });
 }
 
 function vf_remove_script(vf_script_id) {
     vf_confirm_action(
-        'Remove Script',
-        'Are you sure you want to remove this script? This action cannot be undone.',
+        '移除脚本',
+        '确定要移除此脚本吗？此操作无法撤销。',
         function() {
             fetch(vg_api_base + '/scripts/' + vf_script_id + '/remove', {
                 method: 'DELETE'
@@ -1142,17 +1124,17 @@ function vf_remove_script(vf_script_id) {
             .then(vf_response => vf_response.json())
             .then(vf_data => {
                 if (vf_data.success) {
-                    vf_show_notification('Script removed successfully', 'success');
+                    vf_show_notification('脚本移除成功', 'success');
                     vf_fetch_initial_data().then(function() {
                         // After data is refreshed, update the script list
                         vf_populate_script_list();
                     });
                 } else {
-                    vf_show_notification('Failed to remove script: ' + vf_data.error, 'error');
+                    vf_show_notification('移除脚本失败: ' + vf_data.error, 'error');
                 }
             })
             .catch(vf_error => {
-                vf_show_notification('Error removing script', 'error');
+                vf_show_notification('移除脚本出错', 'error');
                 console.error('Error:', vf_error);
             });
         }
@@ -1163,30 +1145,30 @@ function vf_remove_script(vf_script_id) {
 function vf_handle_file_select(event) {
     var vf_file = event.target.files[0];
     if (!vf_file) return;
-    
+
     // Check if it's a Python file
     if (!vf_file.name.endsWith('.py')) {
-        vf_show_notification('Please select a Python (.py) file', 'error');
+        vf_show_notification('请选择 Python (.py) 文件', 'error');
         event.target.value = '';
         return;
     }
-    
+
     // Get filename
     var vf_filename = vf_file.name;
-    
+
     // Auto-fill the display name if empty
     if (!document.getElementById('new-script-name').value) {
         var vf_name = vf_filename.replace('.py', '').replace(/_/g, ' ');
         vf_name = vf_name.charAt(0).toUpperCase() + vf_name.slice(1);
         document.getElementById('new-script-name').value = vf_name;
     }
-    
+
     // Automatically add the common scripts directory path
     document.getElementById('new-script-path').value = 'D:\\xampp\\htdocs\\mpy0\\scripts\\' + vf_filename;
-    
+
     // Show success notification
-    vf_show_notification('File path auto-completed: D:\\xampp\\htdocs\\mpy0\\scripts\\' + vf_filename, 'success');
-    
+    vf_show_notification('文件路径已自动补全: D:\\xampp\\htdocs\\mpy0\\scripts\\' + vf_filename, 'success');
+
     // Reset file input for future use
     event.target.value = '';
 }
@@ -1225,12 +1207,70 @@ function vf_populate_group_suggestions(vf_datalist_id) {
     });
 
     // Add Default if not present
-    vf_groups.add('Default');
+    vf_groups.add('默认');
 
     // Create options for each group
     vf_groups.forEach(function(vf_group) {
         var vf_option = document.createElement('option');
         vf_option.value = vf_group;
         vf_datalist.appendChild(vf_option);
+    });
+}
+
+// Splitter functionality
+function vf_init_splitter() {
+    var vf_splitter = document.getElementById('splitter');
+    var vf_scripts_section = document.getElementById('scripts-section');
+    var vf_container = document.querySelector('.main-content');
+
+    if (!vf_splitter || !vf_scripts_section || !vf_container) return;
+
+    // Load saved width
+    var vf_saved_width = localStorage.getItem('scriptsSectionWidth');
+    if (vf_saved_width) {
+        // Ensure it's not too small or too large
+        var vf_width = parseInt(vf_saved_width);
+        var vf_container_width = vf_container.clientWidth;
+        if (vf_width > 200 && vf_width < vf_container_width - 100) {
+            vf_scripts_section.style.width = vf_width + 'px';
+        }
+    }
+
+    var vf_is_dragging = false;
+
+    vf_splitter.addEventListener('mousedown', function(e) {
+        vf_is_dragging = true;
+        vf_splitter.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none'; // Disable text selection while dragging
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!vf_is_dragging) return;
+
+        // Calculate new width relative to container
+        var vf_container_rect = vf_container.getBoundingClientRect();
+        var vf_new_width = e.clientX - vf_container_rect.left;
+
+        // Min width constraints
+        if (vf_new_width < 200) vf_new_width = 200;
+
+        // Max width constraints (leave space for logs)
+        var vf_max_width = vf_container_rect.width - 100; // Leave 100px for logs
+        if (vf_new_width > vf_max_width) vf_new_width = vf_max_width;
+
+        vf_scripts_section.style.width = vf_new_width + 'px';
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (vf_is_dragging) {
+            vf_is_dragging = false;
+            vf_splitter.classList.remove('active');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+
+            // Save width preference
+            localStorage.setItem('scriptsSectionWidth', vf_scripts_section.style.width);
+        }
     });
 }

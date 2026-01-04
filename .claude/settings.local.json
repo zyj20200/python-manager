@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout py_manager/py_manager.css)"
+    ]
+  }
+}
