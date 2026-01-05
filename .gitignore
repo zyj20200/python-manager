@@ -163,6 +163,7 @@ cython_debug/
 .vscode/
 
 # Python Manager specific
+py_manager/config.json
 logs/*.log
 py_manager/logs/*.log
 scripts/*.log
