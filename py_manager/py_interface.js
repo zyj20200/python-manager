@@ -8,6 +8,8 @@ var vg_current_log_script = 'manager';
 var vg_websocket_available = false;
 var vg_current_view = 'scripts';
 var vg_current_group = 'All';
+var vg_sort_column = 'name';
+var vg_sort_direction = 'asc'; // 'asc' or 'desc'
 
 // Global arrays
 var ag_scripts = [];
@@ -40,6 +42,12 @@ function vf_switch_view(viewName) {
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     var navItem = document.getElementById('nav-' + viewName);
     if (navItem) navItem.classList.add('active');
+    
+    // Show/Hide script actions in top bar
+    var scriptActions = document.getElementById('script-actions');
+    if (scriptActions) {
+        scriptActions.style.display = viewName === 'scripts' ? 'flex' : 'none';
+    }
     
     // Update Main Content
     document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
@@ -207,9 +215,32 @@ function vf_select_group(group) {
     vf_render_scripts_table();
 }
 
+function vf_sort_scripts(column) {
+    if (vg_sort_column === column) {
+        // Toggle direction
+        vg_sort_direction = vg_sort_direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        vg_sort_column = column;
+        vg_sort_direction = 'asc';
+    }
+    vf_render_scripts_table();
+}
+
+function vf_update_sort_icons() {
+    // Reset all icons
+    document.querySelectorAll('.sort-icon').forEach(el => el.textContent = '');
+    
+    // Set current icon
+    var icon = document.getElementById('sort-' + vg_sort_column);
+    if (icon) {
+        icon.textContent = vg_sort_direction === 'asc' ? '↑' : '↓';
+    }
+}
+
 // Rendering
 function vf_render_scripts_table() {
     vf_render_group_tabs(); // Update tabs
+    vf_update_sort_icons(); // Update sort icons
     
     var tbody = document.getElementById('scripts-table-body');
     var emptyState = document.getElementById('empty-state');
@@ -237,8 +268,28 @@ function vf_render_scripts_table() {
     
     emptyState.style.display = 'none';
     
-    // Sort by name
-    scriptsToShow.sort((a, b) => a.name.localeCompare(b.name));
+    // Sort scripts
+    scriptsToShow.sort((a, b) => {
+        var valA = a[vg_sort_column];
+        var valB = b[vg_sort_column];
+        
+        // Handle null/undefined
+        if (valA === undefined || valA === null) valA = '';
+        if (valB === undefined || valB === null) valB = '';
+        
+        // Handle numeric values
+        if (typeof valA === 'number' && typeof valB === 'number') {
+            return vg_sort_direction === 'asc' ? valA - valB : valB - valA;
+        }
+        
+        // Handle strings
+        valA = String(valA).toLowerCase();
+        valB = String(valB).toLowerCase();
+        
+        if (valA < valB) return vg_sort_direction === 'asc' ? -1 : 1;
+        if (valA > valB) return vg_sort_direction === 'asc' ? 1 : -1;
+        return 0;
+    });
     
     var html = '';
     scriptsToShow.forEach(script => {

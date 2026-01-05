@@ -46,10 +46,18 @@
         <main class="main-content">
             <header class="top-bar">
                 <h2 id="page-title">脚本管理</h2>
-                <div class="top-actions">
-                    <button class="btn btn-icon" onclick="vf_toggle_dark_mode()" title="切换主题">
-                        🌓
-                    </button>
+                <div class="top-right-area">
+                    <div id="script-actions" class="script-actions">
+                        <div class="search-box">
+                            <input type="text" placeholder="请输入名称或者关键词" onkeyup="vf_filter_scripts(this.value)">
+                        </div>
+                        <button class="btn btn-primary" onclick="vf_show_add_script_modal()">创建任务</button>
+                    </div>
+                    <div class="top-actions">
+                        <button class="btn btn-icon" onclick="vf_toggle_dark_mode()" title="切换主题">
+                            🌓
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -58,27 +66,19 @@
                 <div class="group-tabs" id="script-groups">
                     <!-- Group tabs will be inserted here -->
                 </div>
-                <div class="toolbar">
-                    <div class="search-box">
-                        <input type="text" placeholder="请输入名称或者关键词" onkeyup="vf_filter_scripts(this.value)">
-                    </div>
-                    <div class="actions">
-                        <button class="btn btn-primary" onclick="vf_show_add_script_modal()">创建任务</button>
-                    </div>
-                </div>
                 
                 <div class="table-container">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th style="width: 40px;"><input type="checkbox" id="select-all-scripts"></th>
-                                <th>名称</th>
-                                <th>命令/脚本</th>
-                                <th>状态</th>
-                                <th>PID</th>
-                                <th>CPU</th>
-                                <th>内存</th>
-                                <th>运行时长</th>
+                                <th class="sortable" onclick="vf_sort_scripts('name')">名称 <span class="sort-icon" id="sort-name"></span></th>
+                                <th class="sortable" onclick="vf_sort_scripts('path')">命令/脚本 <span class="sort-icon" id="sort-path"></span></th>
+                                <th class="sortable" onclick="vf_sort_scripts('status')">状态 <span class="sort-icon" id="sort-status"></span></th>
+                                <th class="sortable" onclick="vf_sort_scripts('pid')">PID <span class="sort-icon" id="sort-pid"></span></th>
+                                <th class="sortable" onclick="vf_sort_scripts('cpu_percent')">CPU <span class="sort-icon" id="sort-cpu_percent"></span></th>
+                                <th class="sortable" onclick="vf_sort_scripts('memory_mb')">内存 <span class="sort-icon" id="sort-memory_mb"></span></th>
+                                <th class="sortable" onclick="vf_sort_scripts('start_time')">运行时长 <span class="sort-icon" id="sort-start_time"></span></th>
                                 <th>操作</th>
                             </tr>
                         </thead>
