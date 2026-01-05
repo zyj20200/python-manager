@@ -1,0 +1,23 @@
+{
+  "manager_settings": {
+    "port": 8080,
+    "log_retention_days": 7,
+    "check_interval_seconds": 5,
+    "auto_restart_max_attempts": 3,
+    "auto_restart_delay_seconds": 10
+  },
+  "scripts": [
+    {
+      "id": "example_script_01",
+      "name": "Example Script",
+      "path": "/path/to/your/script.py",
+      "args": ["--arg1", "value1"],
+      "auto_restart": true,
+      "enabled": true,
+      "max_memory_mb": 512,
+      "log_file": "example_script.log",
+      "group": "Default",
+      "interpreter": "/path/to/python"
+    }
+  ]
+}

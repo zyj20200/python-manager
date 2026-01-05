@@ -53,6 +53,17 @@ def vf_load_config():
     global vg_config
     vf_config_path = os.path.join(os.path.dirname(__file__), 'config.json')
     
+    # Check if config exists, if not try to copy from example
+    if not os.path.exists(vf_config_path):
+        vf_example_path = os.path.join(os.path.dirname(__file__), 'config.example.json')
+        if os.path.exists(vf_example_path):
+            try:
+                import shutil
+                shutil.copy(vf_example_path, vf_config_path)
+                print(f"Created config.json from config.example.json")
+            except Exception as e:
+                print(f"Error creating config from example: {e}")
+
     try:
         with open(vf_config_path, 'r') as vf_file:
             vg_config = json.load(vf_file)
