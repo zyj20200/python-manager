@@ -1,205 +1,182 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <title>Python 脚本管理器 - 进程控制仪表盘</title>
-    <!-- Use absolute paths for all-in-one server -->
+    <title>Python 脚本管理器</title>
     <link rel="stylesheet" href="./py_manager.css">
-    <!-- Socket.IO with CDN fallback -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
     <script>
-        // Fallback to local file if CDN fails
         if (typeof io === 'undefined') {
             document.write('<script src="./socket.io.min.js"><\/script>');
         }
     </script>
-
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <h1>Python 脚本管理器</h1>
-            <div class="connection-status">
-                <span class="status-indicator" id="connection-status"></span>
-                <span id="connection-text">未连接</span>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <span class="logo-text">Python Manager</span>
             </div>
-            <button class="btn btn-secondary" onclick="vf_toggle_dark_mode()" style="margin-left: 1rem;">
-                🌓 切换主题
-            </button>
-        </header>
-
-        <!-- After header, before main-content -->
-<div class="stats-bar">
-    <div class="stat-group">
-        <div class="stat-item">
-            <span class="stat-label">脚本总数:</span>
-            <span class="stat-value" id="stat-total">0</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-label">运行中:</span>
-            <span class="stat-value stat-running" id="stat-running">0</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-label">已停止:</span>
-            <span class="stat-value stat-stopped" id="stat-stopped">0</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-label">CPU 总占用:</span>
-            <span class="stat-value" id="stat-cpu">0%</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-label">内存总占用:</span>
-            <span class="stat-value" id="stat-memory">0 MB</span>
-        </div>
-    </div>
-    <div class="bulk-actions">
-        <button class="btn btn-success" onclick="vf_start_all_scripts()" title="启动所有启用的脚本">
-            全部启动
-        </button>
-        <button class="btn btn-danger" onclick="vf_stop_all_scripts()" title="停止所有运行的脚本">
-            全部停止
-        </button>
-        <button class="btn btn-primary" onclick="vf_reload_config()" title="重新加载配置 (Alt+R)">
-            重载配置
-        </button>
-        <button class="btn btn-info" onclick="vf_show_script_manager()" title="管理脚本列表">
-            脚本管理
-        </button>
-        <button class="btn btn-success" onclick="vf_show_add_script_modal()" title="添加新脚本">
-            添加脚本
-        </button>
-    </div>
-</div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" onclick="vf_switch_view('scripts')" id="nav-scripts">
+                    <span class="icon">📄</span>
+                    <span class="text">脚本管理</span>
+                </a>
+                <a href="#" class="nav-item" onclick="vf_switch_view('logs')" id="nav-logs">
+                    <span class="icon">📋</span>
+                    <span class="text">日志管理</span>
+                </a>
+                <a href="#" class="nav-item" onclick="vf_switch_view('settings')" id="nav-settings">
+                    <span class="icon">⚙️</span>
+                    <span class="text">系统设置</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="connection-status">
+                    <span class="status-indicator" id="connection-status"></span>
+                    <span id="connection-text">未连接</span>
+                </div>
+            </div>
+        </aside>
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Scripts Grid -->
-            <section class="scripts-section" id="scripts-section">
-                <div class="section-header">
-                    <h2>受控脚本</h2>
+            <header class="top-bar">
+                <h2 id="page-title">脚本管理</h2>
+                <div class="top-actions">
+                    <button class="btn btn-icon" onclick="vf_toggle_dark_mode()" title="切换主题">
+                        🌓
+                    </button>
                 </div>
+            </header>
 
-                <div id="scripts-grid" class="scripts-grid">
-                    <!-- Script cards will be inserted here -->
+            <!-- Scripts View -->
+            <div id="view-scripts" class="view-section active">
+                <div class="group-tabs" id="script-groups">
+                    <!-- Group tabs will be inserted here -->
                 </div>
-            </section>
-
-            <!-- Splitter Handle -->
-            <div class="splitter" id="splitter"></div>
-
-            <!-- Logs Section -->
-            <section class="logs-section" id="logs-section">
-                <div class="section-header">
-                    <h2>日志</h2>
-                    <div class="log-controls">
-                        <select id="log-selector" onchange="vf_change_log_view()">
-                            <option value="manager">管理器日志</option>
-                        </select>
-                        <button class="btn btn-secondary" onclick="vf_refresh_logs()">
-                            刷新
-                        </button>
-                        <button class="btn btn-secondary" onclick="vf_clear_log_view()">
-                            清空视图
-                        </button>
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input type="text" placeholder="请输入名称或者关键词" onkeyup="vf_filter_scripts(this.value)">
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="vf_show_add_script_modal()">创建任务</button>
                     </div>
                 </div>
-
-                <div id="log-viewer" class="log-viewer">
-                    <div class="log-empty">选择一个脚本以查看日志</div>
+                
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"><input type="checkbox" id="select-all-scripts"></th>
+                                <th>名称</th>
+                                <th>命令/脚本</th>
+                                <th>状态</th>
+                                <th>PID</th>
+                                <th>CPU</th>
+                                <th>内存</th>
+                                <th>运行时长</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scripts-table-body">
+                            <!-- Script rows will be inserted here -->
+                        </tbody>
+                    </table>
+                    <div id="empty-state" class="empty-state" style="display: none;">
+                        <div class="empty-icon">📭</div>
+                        <div class="empty-text">暂无数据</div>
+                    </div>
                 </div>
-            </section>
+            </div>
+
+            <!-- Logs View -->
+            <div id="view-logs" class="view-section" style="display: none;">
+                <div class="log-layout">
+                    <div class="log-sidebar">
+                        <div class="log-search">
+                            <input type="text" placeholder="搜索日志..." onkeyup="vf_filter_logs(this.value)">
+                        </div>
+                        <ul id="log-file-list" class="log-file-list">
+                            <li class="log-file-item active" onclick="vf_select_log('manager')">管理器日志</li>
+                            <!-- Script logs will be added here -->
+                        </ul>
+                    </div>
+                    <div class="log-content-area">
+                        <div class="log-toolbar">
+                            <span id="current-log-name">管理器日志</span>
+                            <div class="log-actions">
+                                <button class="btn btn-sm btn-secondary" onclick="vf_refresh_logs()">刷新</button>
+                                <button class="btn btn-sm btn-secondary" onclick="vf_clear_log_view()">清空</button>
+                            </div>
+                        </div>
+                        <div id="log-viewer" class="log-viewer">
+                            <div class="log-empty">选择一个日志文件查看详情</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings View (Placeholder) -->
+            <div id="view-settings" class="view-section" style="display: none;">
+                <div class="settings-container">
+                    <h3>系统设置</h3>
+                    <div class="form-group">
+                        <label>刷新间隔 (秒)</label>
+                        <input type="number" value="2" id="setting-refresh-interval">
+                    </div>
+                    <button class="btn btn-primary" onclick="vf_save_settings()">保存设置</button>
+                </div>
+            </div>
         </main>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <div class="footer-info">
-                <span>Python Manager v1.0.0</span>
-                <span id="last-update">最后更新: 从未</span>
-            </div>
-        </footer>
     </div>
 
-    <!-- Modal for confirmations -->
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-title">确认操作</h3>
-                <span class="modal-close" onclick="vf_close_modal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <p id="modal-message"></p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="vf_close_modal()">取消</button>
-                <button class="btn btn-primary" id="modal-confirm">确认</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Script Manager Modal -->
-    <div id="script-manager-modal" class="modal">
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h3>脚本管理</h3>
-                <span class="modal-close" onclick="vf_close_script_manager()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <!-- Current Scripts List -->
-                <div id="script-list" class="script-list">
-                    <!-- Script items will be populated here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <!-- Modals -->
     <!-- Add Script Modal -->
     <div id="add-script-modal" class="modal">
-        <div class="modal-content modal-large">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3>添加新脚本</h3>
                 <span class="modal-close" onclick="vf_close_add_script_modal()">&times;</span>
             </div>
             <div class="modal-body">
-                <!-- Add Script Form -->
-                <div class="script-manager-section">
-                    <h4>添加新脚本</h4>
-                    <div class="form-group">
-                        <label>脚本路径:</label>
-                        <input type="text" id="new-script-path" placeholder="例如: D:\xampp\htdocs\mpy0\scripts\example.py">
+                <div class="form-group">
+                    <label>名称</label>
+                    <input type="text" id="new-script-name" placeholder="任务名称">
+                </div>
+                <div class="form-group">
+                    <label>脚本路径</label>
+                    <div class="input-group">
+                        <input type="text" id="new-script-path" placeholder="脚本绝对路径">
                         <input type="file" id="file-picker" accept=".py" style="display: none;" onchange="vf_handle_file_select(event)">
                         <button class="btn btn-secondary" onclick="document.getElementById('file-picker').click()">浏览</button>
-                        <small style="color: #666; display: block; margin-top: 0.25rem;">浏览会自动补全脚本目录。如果脚本在其他位置，请编辑路径。</small>
                     </div>
-                    <div class="form-group">
-                        <label>Python 解释器路径:</label>
-                        <input type="text" id="new-script-interpreter" placeholder="可选 - 默认为系统 python">
-                        <small style="color: #666; display: block; margin-top: 0.25rem;">python.exe 的完整路径 (例如: C:\Python39\python.exe 或虚拟环境路径)</small>
-                    </div>
-                    <div class="form-group">
-                        <label>显示名称:</label>
-                        <input type="text" id="new-script-name" placeholder="可选 - 默认为文件名">
-                    </div>
-                    <div class="form-group">
-                        <label>分组:</label>
-                        <input type="text" id="new-script-group" placeholder="例如: Web Services, Data Processing, Default" list="group-suggestions">
-                        <datalist id="group-suggestions"></datalist>
-                        <small style="color: #666; display: block; margin-top: 0.25rem;">用于组织脚本的分组名称。默认为 "Default"。</small>
-                    </div>
-                    <div class="form-group">
-                        <label>参数:</label>
-                        <input type="text" id="new-script-args" placeholder="空格分隔的参数 (可选)">
-                    </div>
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="new-script-auto-restart" checked>
-                            失败后自动重启
-                        </label>
-                    </div>
-                    <button class="btn btn-success" onclick="vf_add_script()">添加脚本</button>
                 </div>
+                <div class="form-group">
+                    <label>命令/参数</label>
+                    <input type="text" id="new-script-args" placeholder="可选参数">
+                </div>
+                <div class="form-group">
+                    <label>解释器路径</label>
+                    <input type="text" id="new-script-interpreter" placeholder="可选，默认为系统Python">
+                </div>
+                <div class="form-group">
+                    <label>分组</label>
+                    <input type="text" id="new-script-group" placeholder="Default">
+                </div>
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="new-script-auto-restart" checked>
+                        失败后自动重启
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="vf_close_add_script_modal()">取消</button>
+                <button class="btn btn-primary" onclick="vf_add_script()">确定</button>
             </div>
         </div>
     </div>
@@ -214,54 +191,57 @@
             <div class="modal-body">
                 <input type="hidden" id="edit-script-id">
                 <div class="form-group">
-                    <label>脚本路径 (只读):</label>
-                    <input type="text" id="edit-script-path" readonly disabled style="background-color: #f0f0f0; color: #666;">
-                </div>
-                <div class="form-group">
-                    <label>显示名称:</label>
+                    <label>名称</label>
                     <input type="text" id="edit-script-name">
                 </div>
                 <div class="form-group">
-                    <label>分组:</label>
-                    <input type="text" id="edit-script-group" placeholder="例如: Web Services, Data Processing, Default" list="edit-group-suggestions">
-                    <datalist id="edit-group-suggestions"></datalist>
-                    <small style="color: #666; display: block; margin-top: 0.25rem;">用于组织脚本的分组名称。</small>
+                    <label>脚本路径</label>
+                    <input type="text" id="edit-script-path" readonly disabled class="disabled-input">
                 </div>
                 <div class="form-group">
-                    <label>参数:</label>
-                    <input type="text" id="edit-script-args" placeholder="空格分隔的参数">
+                    <label>命令/参数</label>
+                    <input type="text" id="edit-script-args">
                 </div>
                 <div class="form-group">
-                    <label>Python 解释器路径:</label>
-                    <input type="text" id="edit-script-interpreter" placeholder="可选 - 默认为系统 python">
+                    <label>解释器路径</label>
+                    <input type="text" id="edit-script-interpreter">
                 </div>
                 <div class="form-group">
-                    <label>最大内存 (MB):</label>
-                    <input type="number" id="edit-script-memory" placeholder="512">
+                    <label>分组</label>
+                    <input type="text" id="edit-script-group">
                 </div>
-                <div class="form-group">
+                <div class="form-group checkbox-group">
                     <label>
                         <input type="checkbox" id="edit-script-auto-restart">
                         失败后自动重启
                     </label>
                 </div>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="edit-script-enabled">
-                        启用
-                    </label>
-                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="vf_close_edit_script_modal()">取消</button>
-                <button class="btn btn-primary" onclick="vf_save_script_changes()">保存更改</button>
+                <button class="btn btn-primary" onclick="vf_save_script_changes()">保存</button>
             </div>
         </div>
     </div>
 
-<!-- Toast Container -->
-<div id="toast-container" class="toast-container"></div>
+    <!-- Confirmation Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3 id="modal-title">提示</h3>
+                <span class="modal-close" onclick="vf_close_modal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="modal-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="vf_close_modal()">取消</button>
+                <button class="btn btn-primary" id="modal-confirm">确定</button>
+            </div>
+        </div>
+    </div>
 
-<script src="/py_interface.js"></script>
+    <div id="toast-container" class="toast-container"></div>
+    <script src="/py_interface.js"></script>
 </body>
 </html>

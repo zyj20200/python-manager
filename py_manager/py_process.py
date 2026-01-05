@@ -13,22 +13,36 @@ import re
 vg_processes = {}  # Dictionary to store running processes
 vg_config = None   # Configuration data
 vg_restart_attempts = {}  # Track restart attempts
+vg_log_callback = None # Callback for log updates
 
 # Fix path for script execution
 vg_base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def vf_set_log_callback(callback):
+    """Set callback for log updates"""
+    global vg_log_callback
+    vg_log_callback = callback
 
 def vf_strip_ansi(text):
     """Remove ANSI escape sequences from text"""
     ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
     return ansi_escape.sub('', text)
 
-def vf_log_worker(pipe, log_file):
+def vf_log_worker(pipe, log_file, script_id):
     """Read from pipe and write to log file"""
     try:
         for line in pipe:
             # clean_line = vf_strip_ansi(line)
             log_file.write(line)
             log_file.flush()
+            
+            # Emit log update if callback is set
+            if vg_log_callback:
+                try:
+                    vg_log_callback(script_id, line)
+                except Exception:
+                    pass
+                    
     except ValueError:
         pass  # File likely closed
     except Exception as e:
@@ -123,7 +137,7 @@ def vf_start_script(vf_script_id):
         # Start log processing thread
         vf_log_thread = threading.Thread(
             target=vf_log_worker,
-            args=(vf_process.stdout, vf_log_file),
+            args=(vf_process.stdout, vf_log_file, vf_script_id),
             daemon=True
         )
         vf_log_thread.start()

@@ -133,9 +133,9 @@ def vf_start_all_in_one():
     print("\n" + "="*60)
     print("Server is ready!")
     print("="*60)
-    print(f"\n→ Web Interface: http://localhost:5000/")
-    print(f"→ API Endpoint:  http://localhost:5000/api/")
-    print(f"→ Health Check:  http://localhost:5000/health")
+    print(f"\n→ Web Interface: http://localhost:55000/")
+    print(f"→ API Endpoint:  http://localhost:55000/api/")
+    print(f"→ Health Check:  http://localhost:55000/health")
     print(f"\nPress Ctrl+C to stop the server")
     print("="*60 + "\n")
     

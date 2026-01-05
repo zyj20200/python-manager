@@ -7,6 +7,12 @@ from pathlib import Path
 vg_log_dir = os.path.join(os.path.dirname(__file__), 'logs')
 vg_max_log_size = 10 * 1024 * 1024  # 10MB
 vg_log_retention_days = 7
+vg_log_callback = None
+
+def vf_set_log_callback(callback):
+    """Set callback for log updates"""
+    global vg_log_callback
+    vg_log_callback = callback
 
 def vf_ensure_log_dir():
     """Ensure log directory exists"""
@@ -35,8 +41,21 @@ def vf_write_manager_log(vf_level, vf_message, vf_script_id=None):
     
     vf_log_file = os.path.join(vg_log_dir, 'manager.log')
     
+    vf_log_line = json.dumps(vf_log_entry) + '\n'
+    
     with open(vf_log_file, 'a') as vf_file:
-        vf_file.write(json.dumps(vf_log_entry) + '\n')
+        vf_file.write(vf_log_line)
+        
+    # Emit log update if callback is set
+    if vg_log_callback:
+        try:
+            # Format for display: [TIMESTAMP] [LEVEL] Message
+            vf_display_msg = f"[{vf_timestamp}] [{vf_level}] {vf_message}"
+            if vf_script_id:
+                vf_display_msg += f" (Script: {vf_script_id})"
+            vg_log_callback('manager', vf_display_msg + '\n')
+        except Exception:
+            pass
     
     # Check if rotation needed
     vf_rotate_log_if_needed(vf_log_file)

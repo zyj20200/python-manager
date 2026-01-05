@@ -95,6 +95,19 @@ vg_socketio = SocketIO(
     async_mode='threading'
 )
 
+# Log callback for real-time updates
+def vf_on_log_update(script_id, message):
+    """Callback for log updates from py_process"""
+    if vg_socketio:
+        vg_socketio.emit('log_update', {
+            'script_id': script_id,
+            'message': message
+        })
+
+# Register callback
+py_process.vf_set_log_callback(vf_on_log_update)
+py_logger.vf_set_log_callback(vf_on_log_update)
+
 # Middleware for optional authentication
 def vf_check_auth():
     """Check authentication if enabled"""

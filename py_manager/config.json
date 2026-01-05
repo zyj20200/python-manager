@@ -62,6 +62,17 @@
       "max_memory_mb": 512,
       "log_file": "script_d72e448c.log",
       "group": "Test Scripts"
+    },
+    {
+      "id": "script_bcbdf5a8",
+      "name": "\u3010\u6253\u5370\u4efb\u52a1\u3011",
+      "path": "C:\\Users\\admin\\Downloads\\test\\a.py",
+      "args": [],
+      "auto_restart": true,
+      "enabled": true,
+      "max_memory_mb": 512,
+      "log_file": "script_bcbdf5a8.log",
+      "group": "print"
     }
   ]
 }
