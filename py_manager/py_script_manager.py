@@ -4,6 +4,7 @@
 import os
 import json
 import uuid
+import shlex
 from pathlib import Path
 
 # Global variable for config path
@@ -53,6 +54,13 @@ def vf_add_script(vf_script_path, vf_name=None, vf_args=None, vf_auto_restart=Tr
 
     if not vf_abs_path.endswith('.py'):
         return {"success": False, "error": "Only Python (.py) files are supported"}
+
+    # Process args
+    if vf_args and isinstance(vf_args, str):
+        try:
+            vf_args = shlex.split(vf_args)
+        except Exception:
+            vf_args = vf_args.split()
 
     # Generate script ID
     vf_script_id = f"script_{uuid.uuid4().hex[:8]}"
@@ -119,7 +127,13 @@ def vf_update_script(vf_script_id, vf_updates):
             if 'name' in vf_updates:
                 vf_script['name'] = vf_updates['name']
             if 'args' in vf_updates:
-                vf_script['args'] = vf_updates['args']
+                vf_arg_update = vf_updates['args']
+                if vf_arg_update and isinstance(vf_arg_update, str):
+                    try:
+                        vf_arg_update = shlex.split(vf_arg_update)
+                    except Exception:
+                        vf_arg_update = vf_arg_update.split()
+                vf_script['args'] = vf_arg_update
             if 'auto_restart' in vf_updates:
                 vf_script['auto_restart'] = vf_updates['auto_restart']
             if 'enabled' in vf_updates:

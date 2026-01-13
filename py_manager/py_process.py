@@ -296,7 +296,11 @@ def vf_get_all_status():
             'name': vf_script['name'],
             'enabled': vf_script['enabled'],
             'path': vf_script['path'],
-            'group': vf_script.get('group', 'Default')
+            'group': vf_script.get('group', 'Default'),
+            'args': vf_script.get('args', []),
+            'auto_restart': vf_script.get('auto_restart', True),
+            'interpreter': vf_script.get('interpreter'),
+            'max_memory_mb': vf_script.get('max_memory_mb', 512)
         }
 
         if vf_is_process_running(vf_script_id):

@@ -568,7 +568,14 @@ function vf_show_edit_script_modal(id) {
     document.getElementById('edit-script-id').value = script.id;
     document.getElementById('edit-script-name').value = script.name;
     document.getElementById('edit-script-path').value = script.path;
-    document.getElementById('edit-script-args').value = script.args || '';
+    
+    // Handle args display
+    let args = script.args;
+    if (Array.isArray(args)) {
+        args = args.join(' ');
+    }
+    document.getElementById('edit-script-args').value = args || '';
+    
     document.getElementById('edit-script-interpreter').value = script.interpreter || '';
     document.getElementById('edit-script-group').value = script.group || '';
     document.getElementById('edit-script-auto-restart').checked = script.auto_restart;
