@@ -284,7 +284,9 @@ class TelegramBot:
             self.application.add_handler(CallbackQueryHandler(self.button_handler))
 
             print("Telegram Bot polling starting...")
-            self.application.run_polling()
+            # stop_signals=None is required when running in a thread (not main thread)
+            # to avoid "ValueError: set_wakeup_fd only works in main thread"
+            self.application.run_polling(stop_signals=None)
         except Exception as e:
             print(f"CRITICAL: Telegram Bot failed to start: {e}")
             import traceback
