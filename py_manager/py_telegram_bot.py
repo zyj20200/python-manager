@@ -80,12 +80,20 @@ class TelegramBot:
             header_text = f"🔹🔹🔹 {group_name} 🔹🔹🔹"
             keyboards.append([InlineKeyboardButton(header_text, callback_data="noop")])
             
-            # Add Scripts in this group
+            # Add Scripts in this group, arranged in rows of 2
+            current_row = []
             for script in grouped_scripts[group_name]:
                 status_emoji = "🟢" if script.get('status') == 'running' else "🔴"
-                # Use spaces for indentation instead of tree chars to cleaner look
-                button_text = f"   {status_emoji} {script['name']}"
-                keyboards.append([InlineKeyboardButton(button_text, callback_data=f"select_{script['id']}")])
+                button_text = f"{status_emoji} {script['name']}"
+                current_row.append(InlineKeyboardButton(button_text, callback_data=f"select_{script['id']}"))
+                
+                if len(current_row) == 2:
+                    keyboards.append(current_row)
+                    current_row = []
+            
+            # Add remaining button if any
+            if current_row:
+                keyboards.append(current_row)
         
         # Control buttons
         controls = [
