@@ -6,6 +6,10 @@ import threading
 # Import from same package
 import py_process
 import py_logger
+try:
+    import py_telegram_bot
+except ImportError:
+    py_telegram_bot = None
 
 # Global variables
 vg_running = True
@@ -88,6 +92,25 @@ def vf_main():
     
     # Log startup
     py_logger.vf_write_manager_log('INFO', 'Manager started')
+
+    # Start Telegram Bot if configured
+    vf_config = py_process.vg_config
+    if vf_config.get('telegram') and vf_config['telegram'].get('token'):
+        if py_telegram_bot:
+            vf_token = vf_config['telegram']['token']
+            vf_chat_ids = vf_config['telegram'].get('allowed_chat_ids', [])
+            
+            print(f"Starting Telegram Bot...")
+            vf_bot_thread = threading.Thread(
+                target=py_telegram_bot.run_bot_thread,
+                args=(vf_token, vf_chat_ids)
+            )
+            vf_bot_thread.daemon = True
+            vf_bot_thread.start()
+            py_logger.vf_write_manager_log('INFO', 'Telegram Bot started')
+        else:
+             print("Warning: python-telegram-bot not installed. Telegram bot disabled.")
+             py_logger.vf_write_manager_log('WARNING', 'python-telegram-bot not installed')
     
     # Initial status
     vf_print_status()

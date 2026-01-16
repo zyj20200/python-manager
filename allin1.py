@@ -15,6 +15,14 @@ import py_process
 import py_logger
 from py_api import vg_app, vg_socketio, vf_status_update_loop
 
+try:
+    import py_telegram_bot
+except ImportError as e:
+    print(f"DEBUG: Failed to import py_telegram_bot: {e}")
+    import traceback
+    traceback.print_exc()
+    py_telegram_bot = None
+
 # Get the absolute path to py_manager directory
 vg_py_manager_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'py_manager')
 
@@ -124,6 +132,25 @@ def vf_start_all_in_one():
     
     # Log startup
     py_logger.vf_write_manager_log('INFO', 'All-in-one server started')
+
+    # Start Telegram Bot if configured
+    vf_config = py_process.vg_config
+    if vf_config.get('telegram') and vf_config['telegram'].get('token'):
+        if py_telegram_bot:
+            vf_token = vf_config['telegram']['token']
+            vf_chat_ids = vf_config['telegram'].get('allowed_chat_ids', [])
+            
+            print(f"Starting Telegram Bot...")
+            vf_bot_thread = threading.Thread(
+                target=py_telegram_bot.run_bot_thread,
+                args=(vf_token, vf_chat_ids)
+            )
+            vf_bot_thread.daemon = True
+            vf_bot_thread.start()
+            py_logger.vf_write_manager_log('INFO', 'Telegram Bot started')
+        else:
+             print("Warning: python-telegram-bot not installed. Telegram bot disabled.")
+             py_logger.vf_write_manager_log('WARNING', 'python-telegram-bot not installed')
     
     # List all routes for debugging
     print("\nRegistered routes:")
