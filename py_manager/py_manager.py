@@ -95,10 +95,12 @@ def vf_main():
 
     # Start Telegram Bot if configured
     vf_config = py_process.vg_config
-    if vf_config.get('telegram') and vf_config['telegram'].get('token'):
+    vf_telegram_config = vf_config.get('telegram', {})
+    vf_telegram_enabled = vf_telegram_config.get('enabled', True)
+    if vf_telegram_enabled and vf_telegram_config.get('token'):
         if py_telegram_bot:
-            vf_token = vf_config['telegram']['token']
-            vf_chat_ids = vf_config['telegram'].get('allowed_chat_ids', [])
+            vf_token = vf_telegram_config['token']
+            vf_chat_ids = vf_telegram_config.get('allowed_chat_ids', [])
             
             print(f"Starting Telegram Bot...")
             vf_bot_thread = threading.Thread(

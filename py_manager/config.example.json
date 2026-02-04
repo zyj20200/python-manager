@@ -7,6 +7,7 @@
     "auto_restart_delay_seconds": 10
   },
   "telegram": {
+    "enabled": false,
     "token": "",
     "allowed_chat_ids": []
   },
