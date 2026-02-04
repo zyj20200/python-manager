@@ -302,7 +302,7 @@ function vf_render_scripts_table() {
 function vf_create_script_row(script) {
     var isRunning = script.status === 'running';
     var statusClass = isRunning ? 'running' : 'stopped';
-    var statusText = isRunning ? '运行中' : '已停止';
+    var statusText = isRunning ? 'Running' : 'Stopped';
     
     var uptime = isRunning ? vf_calculate_uptime(script.start_time) : '-';
     var cpu = isRunning ? script.cpu_percent.toFixed(1) + '%' : '-';
@@ -313,11 +313,11 @@ function vf_create_script_row(script) {
         <tr>
             <td><input type="checkbox" value="${script.id}"></td>
             <td>
-                <div style="font-weight: 500;">${script.name}</div>
+                <div style="font-weight: 600;">${script.name}</div>
                 <div style="font-size: 12px; color: var(--text-secondary);">${script.id}</div>
             </td>
             <td>
-                <div style="font-family: monospace; font-size: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="${script.path}">
+                <div style="font-family: monospace; font-size: 12px; max-width: 240px; overflow: hidden; text-overflow: ellipsis;" title="${script.path}">
                     ${script.path}
                 </div>
             </td>
@@ -327,14 +327,16 @@ function vf_create_script_row(script) {
             <td style="font-family: monospace;">${memory}</td>
             <td>${uptime}</td>
             <td>
-                ${isRunning ? 
-                    `<button class="btn btn-link danger" onclick="vf_stop_script('${script.id}')" title="停止">⏹</button>` : 
-                    `<button class="btn btn-link" onclick="vf_start_script('${script.id}')" title="启动">▶</button>`
-                }
-                <button class="btn btn-link" onclick="vf_restart_script('${script.id}')" title="重启">↻</button>
-                <button class="btn btn-link" onclick="vf_show_edit_script_modal('${script.id}')" title="编辑">✏️</button>
-                <button class="btn btn-link" onclick="vf_view_log('${script.id}')" title="日志">📄</button>
-                <button class="btn btn-link danger" onclick="vf_delete_script('${script.id}')" title="删除">🗑</button>
+                <div class="action-buttons">
+                    ${isRunning ? 
+                        `<button class="action-btn action-stop" onclick="vf_stop_script('${script.id}')" title="Stop"><span class="action-icon">&#9632;</span></button>` : 
+                        `<button class="action-btn action-start" onclick="vf_start_script('${script.id}')" title="Start"><span class="action-icon">&#9658;</span></button>`
+                    }
+                    <button class="action-btn action-restart" onclick="vf_restart_script('${script.id}')" title="Restart"><span class="action-icon">&#10227;</span></button>
+                    <button class="action-btn action-edit" onclick="vf_show_edit_script_modal('${script.id}')" title="Edit"><span class="action-icon">&#9998;</span></button>
+                    <button class="action-btn action-log" onclick="vf_view_log('${script.id}')" title="Logs"><span class="action-icon">&#128221;</span></button>
+                    <button class="action-btn action-delete" onclick="vf_delete_script('${script.id}')" title="Delete"><span class="action-icon">&#128465;</span></button>
+                </div>
             </td>
         </tr>
     `;
