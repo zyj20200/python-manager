@@ -8,7 +8,7 @@
 
 一个基于 Web 的工具，用于管理多个 Python 脚本，支持实时监控、日志记录和控制。非常适合管理微服务、数据管道、后台任务或任何 Python 脚本集合。
 
-![image](https://github.com/user-attachments/assets/a6a85295-43cb-40b3-97fe-0608c59bcaf5)
+![Python Manager Dashboard](imgs/home.png)
 
 
 ## ✨ 功能特性
